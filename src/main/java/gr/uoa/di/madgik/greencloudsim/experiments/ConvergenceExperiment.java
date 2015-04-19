@@ -1,8 +1,10 @@
 package gr.uoa.di.madgik.greencloudsim.experiments;
 
+import gr.uoa.di.madgik.greencloudsim.ComputeNode;
 import gr.uoa.di.madgik.greencloudsim.Datacenter;
 import gr.uoa.di.madgik.greencloudsim.Environment;
 import gr.uoa.di.madgik.greencloudsim.GreenCloudSimulator;
+import java.util.List;
 
 /**
  * Implements the convergence experiment. With this experiment, we
@@ -16,7 +18,9 @@ public class ConvergenceExperiment extends GreenCloudSimulator
 {
     /** Determines the underutilized - overutilized ratio */
     private static final double underutilizedPercentage = 0.25d;
-
+     public ConvergenceExperiment(List<ComputeNode> compute_nodes ){
+         super(compute_nodes);
+     }
     @Override
     protected void setInitialWorkload() throws Exception
     {

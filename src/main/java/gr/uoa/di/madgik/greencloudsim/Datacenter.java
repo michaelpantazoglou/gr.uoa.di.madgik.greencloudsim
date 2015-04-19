@@ -1,24 +1,32 @@
 package gr.uoa.di.madgik.greencloudsim;
 
+import static gr.uoa.di.madgik.greencloudsim.HyperCube.constructHypercubeTopology;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * The Datacenter consists of a number of compute nodes organized in a hypercube topology.
+ * The Datacenter consists of a number of compute nodes organized in a hypercube
+ * topology.
  *
  * Created by michael on 17/11/14.
  */
-public class Datacenter
-{
-    /** singleton */
+public class Datacenter {
+
+    /**
+     * singleton
+     */
     private static final Datacenter sharedInstance = new Datacenter();
 
-    /** the compute nodes */
-    private HashMap<String,ComputeNode> computeNodes;
+    /**
+     * the compute nodes
+     */
+    private HashMap<String, ComputeNode> computeNodes;
 
-    /** indices */
+    /**
+     * indices
+     */
     private List<String> switchedOffNodes;
     private List<String> idleNodes;
     private List<String> underutilizedNodes;
@@ -28,8 +36,7 @@ public class Datacenter
     /**
      * Private constructor.
      */
-    private Datacenter()
-    {
+    private Datacenter() {
         computeNodes = new HashMap<>();
 
         switchedOffNodes = new ArrayList<>();
@@ -46,8 +53,7 @@ public class Datacenter
      *
      * @return
      */
-    public static Datacenter $()
-    {
+    public static Datacenter $() {
 //        if (null == sharedInstance)
 //        {
 //            sharedInstance = new GreenCloud();
@@ -56,10 +62,22 @@ public class Datacenter
     }
 
     /**
-     * private initializer.
+     * Make topology updates if the topology is dynamically changed
      */
-    public final void init()
-    {
+    public void topologyUpdates() {
+        for (ComputeNode node : computeNodes.values()) {
+            if (!node.isSwitchedOff()) {
+                node.topologyUpdate();
+            }
+        }
+    }
+
+    /**
+     * private initializer.
+     *
+     * @param compute_nodes
+     */
+    public final void init(List<ComputeNode> compute_nodes) {
         computeNodes.clear();
         switchedOffNodes.clear();
         idleNodes.clear();
@@ -67,18 +85,19 @@ public class Datacenter
         okNodes.clear();
         overutilizedNodes.clear();
 
-        /** construct hypercube topology */
+        /**
+         * construct hypercube topology
+         */
+        //TOGO to Hypercube{
         System.out.format("Constructing the %d-dimensional hypercube...\r\n", Environment.$().getHypercubeDimension());
-        List<ComputeNode> hypercube = Util.constructHypercubeTopology(
-                Environment.$().getHypercubeDimension() - 1, Environment.$().getUseRandomIds());
 
-        /** set up compute nodes */
+        /**
+         * set up compute nodes
+         */
         System.out.println("Setting up compute nodes...");
         int numberOfSwitchedOnComputeNodes = 0;
-        for (ComputeNode computeNode : hypercube)
-        {
-            if (numberOfSwitchedOnComputeNodes < Environment.$().getInitialClusterSize())
-            {
+        for (ComputeNode computeNode : compute_nodes) {
+            if (numberOfSwitchedOnComputeNodes < Environment.$().getInitialClusterSize()) {
                 computeNode.switchOn();
                 numberOfSwitchedOnComputeNodes++;
             }
@@ -95,42 +114,35 @@ public class Datacenter
      *
      * @return
      */
-    public final double getCurrentPowerConsumption()
-    {
+    public final double getCurrentPowerConsumption() {
         double powerConsumption = 0d;
-        for (ComputeNode computeNode : computeNodes.values())
-        {
+        for (ComputeNode computeNode : computeNodes.values()) {
             powerConsumption += computeNode.getCurrentPowerConsumption();
         }
         return powerConsumption;
     }
 
-    public final void addVirtualMachineInstance(VirtualMachineInstance vm, String nodeId)
-    {
+    public final void addVirtualMachineInstance(VirtualMachineInstance vm, String nodeId) {
         computeNodes.get(nodeId).add(vm);
     }
 
-    public final void removeVirtualMachineInstance(VirtualMachineInstance vm, String nodeId)
-    {
+    public final void removeVirtualMachineInstance(VirtualMachineInstance vm, String nodeId) {
         computeNodes.get(nodeId).remove(vm);
     }
 
     /**
-     * Adds a new VM instance to a random compute node that is
-     * not overutilized. Only active (idle, underutilized, ok) nodes
-     * are considered unless otherwise specified.
+     * Adds a new VM instance to a random compute node that is not overutilized.
+     * Only active (idle, underutilized, ok) nodes are considered unless
+     * otherwise specified.
      *
      * @param includeSwitchedOffComputeNodes
      */
-    public final void addOneVm(boolean includeSwitchedOffComputeNodes)
-    {
+    public final void addOneVm(boolean includeSwitchedOffComputeNodes) {
         // get all compute nodes that are not switched off or overutilized
         List<ComputeNode> active = new ArrayList<>();
-        for (String id : getActiveComputeNodes(false))
-        {
+        for (String id : getActiveComputeNodes(false)) {
             ComputeNode computeNode = computeNodes.get(id);
-            if (computeNode.isSwitchedOff() && !includeSwitchedOffComputeNodes)
-            {
+            if (computeNode.isSwitchedOff() && !includeSwitchedOffComputeNodes) {
                 continue;
             }
             active.add(computeNode);
@@ -140,11 +152,9 @@ public class Datacenter
         ComputeNode computeNode;
         int random;
 
-        if (active.size() == 0)
-        {
+        if (active.size() == 0) {
             // no active nodes, so switch one one random compute node
-            if (switchedOffNodes.size() == 0 )
-            {
+            if (switchedOffNodes.size() == 0) {
                 // no switched off nodes either. Seems all nodes are overutilized...
                 System.err.println("Cloud resources exhausted! Consider increasing the Hypercube dimension.");
                 System.err.println("Number of switched off nodes  : " + switchedOffNodes.size());
@@ -155,40 +165,37 @@ public class Datacenter
                 System.err.println("Terminating...");
                 System.exit(-1);
             }
-            random = Double.valueOf(Math.random()* switchedOffNodes.size()).intValue();
+            random = Double.valueOf(Math.random() * switchedOffNodes.size()).intValue();
             computeNode = computeNodes.get(getSwitchedOffComputeNodes().get(random));
-        }
-        else
-        {
+        } else {
             random = Double.valueOf(Math.random() * active.size()).intValue();
             computeNode = active.get(random);
         }
 
-        String vmId = Environment.$().getUseRandomIds()?IdentityGenerator.newRandomUUID():IdentityGenerator.newVmInstanceId();
+        String vmId = Environment.$().getUseRandomIds() ? IdentityGenerator.newRandomUUID() : IdentityGenerator.newVmInstanceId();
         addVirtualMachineInstance(new VirtualMachineInstance(vmId), computeNode.getId());
     }
 
-    public final void removeOneVm()
-    {
-        /** get all compute nodes that are not switched off or idle */
+    public final void removeOneVm() {
+        /**
+         * get all compute nodes that are not switched off or idle
+         */
         List<ComputeNode> active = new ArrayList<>();
-        for (ComputeNode computeNode : computeNodes.values())
-        {
-            if (!computeNode.isSwitchedOff() && !computeNode.isIdle())
-            {
+        for (ComputeNode computeNode : computeNodes.values()) {
+            if (!computeNode.isSwitchedOff() && !computeNode.isIdle()) {
                 active.add(computeNode);
             }
         }
 
-        /** select a random compute node from the list and remove a random vm instance from its workload */
-
-        if (active.isEmpty())
-        {
+        /**
+         * select a random compute node from the list and remove a random vm
+         * instance from its workload
+         */
+        if (active.isEmpty()) {
             return;
         }
 
-        if (getNumberOfSwitchedOffComputeNodes() == computeNodes.size())
-        {
+        if (getNumberOfSwitchedOffComputeNodes() == computeNodes.size()) {
             return;
         }
 
@@ -199,12 +206,10 @@ public class Datacenter
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        for (ComputeNode computeNode : computeNodes.values())
-        {
+        for (ComputeNode computeNode : computeNodes.values()) {
             sb.append(computeNode).append("\r\n");
         }
 
@@ -224,9 +229,7 @@ public class Datacenter
 ////        return n;
 //        return idleNodes.size() + underutilizedNodes.size() + okNodes.size() + overutilizedNodes.size();
 //    }
-
-    public final int getNumberOfSwitchedOffComputeNodes()
-    {
+    public final int getNumberOfSwitchedOffComputeNodes() {
 //        int n = 0;
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -239,8 +242,7 @@ public class Datacenter
         return switchedOffNodes.size();
     }
 
-    public final int getNumberOfOverUtilizedComputeNodes()
-    {
+    public final int getNumberOfOverUtilizedComputeNodes() {
 //        int n = 0;
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -253,8 +255,7 @@ public class Datacenter
         return overutilizedNodes.size();
     }
 
-    public final int getNumberOfIdleComputeNodes()
-    {
+    public final int getNumberOfIdleComputeNodes() {
 //        int n = 0;
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -272,18 +273,15 @@ public class Datacenter
      *
      * @return
      */
-    public final int getNumberOfVmInstances()
-    {
+    public final int getNumberOfVmInstances() {
         int n = 0;
-        for (ComputeNode computeNode : computeNodes.values())
-        {
+        for (ComputeNode computeNode : computeNodes.values()) {
             n += computeNode.getWorkload().size();
         }
         return n;
     }
 
-    public final List<String> getOverUtilizedComputeNodes()
-    {
+    public final List<String> getOverUtilizedComputeNodes() {
 //        List<String> result = new ArrayList<>();
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -296,8 +294,7 @@ public class Datacenter
         return overutilizedNodes;
     }
 
-    public final List<String> getIdleComputeNodes()
-    {
+    public final List<String> getIdleComputeNodes() {
 //        List<String> result = new ArrayList<>();
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -310,8 +307,7 @@ public class Datacenter
         return idleNodes;
     }
 
-    public final List<String> getOkComputeNodes()
-    {
+    public final List<String> getOkComputeNodes() {
 //        List<String> result = new ArrayList<>();
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -324,8 +320,7 @@ public class Datacenter
         return okNodes;
     }
 
-    public final List<String> getActiveComputeNodes(boolean includeOverutilized)
-    {
+    public final List<String> getActiveComputeNodes(boolean includeOverutilized) {
         List<String> result = new ArrayList<>();
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -347,15 +342,13 @@ public class Datacenter
         result.addAll(getIdleComputeNodes());
         result.addAll(getUnderUtilizedComputeNodes());
         result.addAll(getOkComputeNodes());
-        if (includeOverutilized)
-        {
+        if (includeOverutilized) {
             result.addAll(getOverUtilizedComputeNodes());
         }
         return result;
     }
 
-    public final List<String> getSwitchedOffComputeNodes()
-    {
+    public final List<String> getSwitchedOffComputeNodes() {
 //        List<String> result = new ArrayList<>();
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -368,8 +361,7 @@ public class Datacenter
         return switchedOffNodes;
     }
 
-    public final List<String> getUnderUtilizedComputeNodes()
-    {
+    public final List<String> getUnderUtilizedComputeNodes() {
 //        List<String> result = new ArrayList<>();
 //        for (ComputeNode computeNode : computeNodes.values())
 //        {
@@ -382,24 +374,20 @@ public class Datacenter
         return underutilizedNodes;
     }
 
-	/**
-	 * Attempts to perform partial migration of the VM instances hosted by the specified compute node.
-	 *
-	 * @param nodeId
-	 * @return
-	 */
-	public final LBResult doPartialVmMigration(String nodeId)
-    {
+    /**
+     * Attempts to perform partial migration of the VM instances hosted by the
+     * specified compute node.
+     *
+     * @param nodeId
+     * @return
+     */
+    public final LBResult doPartialVmMigration(String nodeId) {
         LBResult lbResult = new LBResult();
 
-		ComputeNode computeNode = computeNodes.get(nodeId);
-        if (!computeNode.isOverUtilized())
-        {
+        ComputeNode computeNode = computeNodes.get(nodeId);
+        if (!computeNode.isOverUtilized()) {
             return lbResult;
         }
-
-        /** get hypercube dimension */
-        int d = Environment.$().getHypercubeDimension();
 
         List<String> ok = computeNode.getOkNeighbors();
         List<String> underutilized = computeNode.getUnderutilizedNeighbors();
@@ -420,30 +408,38 @@ public class Datacenter
             targetNeighbors.add(s);
         }
 
-        /** loop for each neighbor */
-        for (String id : targetNeighbors)
-        {
+        /**
+         * loop for each neighbor
+         */
+        for (String id : targetNeighbors) {
             ComputeNode neighbor = computeNodes.get(id);
 
-            /** ignore neighbor if it has become overutilized too */
-            if (neighbor.isOverUtilized())
-            {
+            /**
+             * ignore neighbor if it has become overutilized too
+             */
+            if (neighbor.isOverUtilized()) {
                 continue;
             }
 
-            /** start migrating as many vms as possible to this neighbor */
-            while (true)
-            {
-                /** check if there are still vms in the compute node's workload */
-                if (computeNode.getWorkload().size() == 0)
-                {
+            /**
+             * start migrating as many vms as possible to this neighbor
+             */
+            while (true) {
+                /**
+                 * check if there are still vms in the compute node's workload
+                 */
+                if (computeNode.getWorkload().size() == 0) {
                     break;
                 }
 
-                /** get next vm */
+                /**
+                 * get next vm
+                 */
                 VirtualMachineInstance vm = computeNode.getWorkload().getAt(0);
 
-                /** calculate the maximum number of vms that can be migrated */
+                /**
+                 * calculate the maximum number of vms that can be migrated
+                 */
                 double Emax = (neighbor.getMaxPowerConsumptionThreshold() - neighbor.getCurrentPowerConsumption());
                 double Evm = vm.getPowerConsumption();
 
@@ -451,122 +447,136 @@ public class Datacenter
                 boolean migrationAllowed = (Evm < Emax);
 
                 /**
-                 * break loop when it is not possible to migrate more vms to this neighbor
-                 * or if the compute node is not overutilized anymore
+                 * break loop when it is not possible to migrate more vms to
+                 * this neighbor or if the compute node is not overutilized
+                 * anymore
                  */
-                if (!computeNode.isOverUtilized() || !migrationAllowed)
-                {
+                if (!computeNode.isOverUtilized() || !migrationAllowed) {
                     break;
                 }
 
-                /** perform migration */
+                /**
+                 * perform migration
+                 */
 //				System.out.format("Migrating one VM from node %s to node %s\r\n", computeNode.getId(), neighbor.getId());
-				if (neighbor.isSwitchedOff())
-				{
-					neighbor.switchOn();
-					lbResult.incrementSwitchOns();
-				}
+                if (neighbor.isSwitchedOff()) {
+                    neighbor.switchOn();
+                    lbResult.incrementSwitchOns();
+                }
                 computeNode.remove(vm);
-				if (computeNode.isSwitchedOff())
-				{
-					lbResult.incrementSwitchOffs();
-				}
-				neighbor.add(vm);
-				lbResult.incrementVmMigrations();
+                if (computeNode.isSwitchedOff()) {
+                    lbResult.incrementSwitchOffs();
+                }
+                neighbor.add(vm);
+                lbResult.incrementVmMigrations();
 
-                /** if after migration the neighbor is overutilized, break the migration loop */
-                if (neighbor.isOverUtilized())
-                {
+                /**
+                 * if after migration the neighbor is overutilized, break the
+                 * migration loop
+                 */
+                if (neighbor.isOverUtilized()) {
                     break;
                 }
             }
 
-            /** break loop if the node is no more overutilized */
-            if (!computeNode.isOverUtilized())
-            {
+            /**
+             * break loop if the node is no more overutilized
+             */
+            if (!computeNode.isOverUtilized()) {
                 break;
             }
         }
 
 //		System.out.println("Node " + nodeId + " migrated " + lbResult.getVmMigrations());
-		return lbResult;
+        return lbResult;
     }
 
-	/**
-	 * Attempts a full migration of the current workload of the specified compute node.
-	 *
-	 * @param nodeId
-	 * @return
-	 */
-    public final LBResult doFullVmMigration(String nodeId)
-    {
+    /**
+     * Attempts a full migration of the current workload of the specified
+     * compute node.
+     *
+     * @param nodeId
+     * @return
+     */
+    public final LBResult doFullVmMigration(String nodeId) {
         LBResult lbResult = new LBResult();
 
         ComputeNode computeNode = computeNodes.get(nodeId);
 
-        if (!computeNode.isUnderUtilized())
-        {
+        if (!computeNode.isUnderUtilized()) {
             return lbResult;
         }
 
-        /** get hypercube dimension */
-        int d = Environment.$().getHypercubeDimension();
+        /**
+         * get hypercube dimension
+         */
+        //ToGO hypercube
+        /**
+         * loop for each neighbor
+         */
+        for (String id : computeNode.getAllNeighbors()) {
 
-        /** loop for each neighbor */
-        for (int i = 0; i < d; i++)
-        {
-            ComputeNode neighbor = computeNodes.get(computeNode.getNeighbor(i));
+            ComputeNode neighbor = computeNodes.get(id);
 
-            /** ignore neighbor if it is overutilized or switched off */
-            if (!neighbor.isOk() && !neighbor.isUnderUtilized())
-            {
+            /**
+             * ignore neighbor if it is overutilized or switched off
+             */
+            if (!neighbor.isOk() && !neighbor.isUnderUtilized()) {
                 continue;
             }
 
-            /** start migrating as many vms as possible to this neighbor */
-            while (true)
-            {
-                /** check if there are still vms in the compute node's workload */
-                if (computeNode.getWorkload().size() == 0)
-                {
+            /**
+             * start migrating as many vms as possible to this neighbor
+             */
+            while (true) {
+                /**
+                 * check if there are still vms in the compute node's workload
+                 */
+                if (computeNode.getWorkload().size() == 0) {
                     break;
                 }
 
-                /** get next vm */
+                /**
+                 * get next vm
+                 */
                 VirtualMachineInstance vm = computeNode.getWorkload().getAt(0);
 
-                /** calculate the maximum number of vms that can be migrated */
+                /**
+                 * calculate the maximum number of vms that can be migrated
+                 */
                 double Emax = (neighbor.getMaxPowerConsumptionThreshold() - neighbor.getCurrentPowerConsumption());
                 double Evm = vm.getPowerConsumption();
 
                 boolean migrationAllowed = (Evm < Emax);
 
                 /**
-                 * break loop when it is not possible to migrate more vms to this neighbor
-                 * or if the compute node is not overutilized anymore
+                 * break loop when it is not possible to migrate more vms to
+                 * this neighbor or if the compute node is not overutilized
+                 * anymore
                  */
-                if (!migrationAllowed)
-                {
+                if (!migrationAllowed) {
                     break;
                 }
 
-                /** perform migration */
-				if (neighbor.isSwitchedOff())
-				{
-					neighbor.switchOn();
-					lbResult.incrementSwitchOns();
-				}
-				computeNode.remove(vm);
-				if (computeNode.isSwitchedOff())
-				{
-					lbResult.incrementSwitchOffs();
-				}
-				neighbor.add(vm);
-				lbResult.incrementVmMigrations();
+                /**
+                 * perform migration
+                 */
+                if (neighbor.isSwitchedOff()) {
+                    neighbor.switchOn();
+                    lbResult.incrementSwitchOns();
+                }
+                computeNode.remove(vm);
+                if (computeNode.isSwitchedOff()) {
+                    lbResult.incrementSwitchOffs();
+                }
+                neighbor.add(vm);
+                lbResult.incrementVmMigrations();
 
-                /** if after migration the neighbor is overutilized, break the migration loop */
-                if (neighbor.isOverUtilized())
-                {
+                /**
+                 * if after migration the neighbor is overutilized, break the
+                 * migration loop
+                 */
+                if (neighbor.isOverUtilized()) {
                     break;
                 }
             }
@@ -576,17 +586,16 @@ public class Datacenter
 
     /**
      * Switches off all idle compute nodes.
-	 * @return the number of performed switch offs
+     *
+     * @return the number of performed switch offs
      */
-    public final int switchOffIdleNodes()
-    {
+    public final int switchOffIdleNodes() {
         List<String> idle = new ArrayList<>();
         idle.addAll(getIdleComputeNodes());
-        for (String nodeId : idle)
-        {
+        for (String nodeId : idle) {
             computeNodes.get(nodeId).switchOff();
         }
-		return idle.size();
+        return idle.size();
     }
 
 //    private int roundRobinTicket = 0;
@@ -613,7 +622,6 @@ public class Datacenter
 //
 //        roundRobinTicket++;
 //    }
-
 //    public final void resetAndDistributeWorkloadUsingRoundRobin(int numberOfVms)
 //    {
 //        reset();
@@ -655,14 +663,11 @@ public class Datacenter
 //            idx++;
 //        }
 //    }
-
-    public boolean isExhausted()
-    {
+    public boolean isExhausted() {
         return getNumberOfOverUtilizedComputeNodes() == computeNodes.size();
     }
 
-    private void reset()
-    {
+    private void reset() {
 //        computeNodes.clear();
         switchedOffNodes.clear();
         idleNodes.clear();
@@ -672,14 +677,10 @@ public class Datacenter
 
         int initialClusterSize = Environment.$().getInitialClusterSize();
         int counter = 0;
-        for (ComputeNode computeNode : computeNodes.values())
-        {
-            if (counter == initialClusterSize)
-            {
+        for (ComputeNode computeNode : computeNodes.values()) {
+            if (counter == initialClusterSize) {
                 computeNode.switchOff();
-            }
-            else
-            {
+            } else {
                 computeNode.switchOn();
                 counter++;
             }
@@ -692,58 +693,37 @@ public class Datacenter
      * @param node
      * @param oldState
      */
-    public final void reindex(ComputeNode node, ComputeNode.State oldState)
-    {
+    public final void reindex(ComputeNode node, ComputeNode.State oldState) {
         // first remove node from indices
-        if (ComputeNode.State.SwitchedOff.equals(oldState))
-        {
+        if (ComputeNode.State.SwitchedOff.equals(oldState)) {
             switchedOffNodes.remove(node.getId());
-        }
-        else if (ComputeNode.State.Idle.equals(oldState))
-        {
+        } else if (ComputeNode.State.Idle.equals(oldState)) {
             idleNodes.remove(node.getId());
-        }
-        else if (ComputeNode.State.Underutilized.equals(oldState))
-        {
+        } else if (ComputeNode.State.Underutilized.equals(oldState)) {
             underutilizedNodes.remove(node.getId());
-        }
-        else if (ComputeNode.State.Ok.equals(oldState))
-        {
+        } else if (ComputeNode.State.Ok.equals(oldState)) {
             okNodes.remove(node.getId());
-        }
-        else if (ComputeNode.State.Overutilized.equals(oldState))
-        {
+        } else if (ComputeNode.State.Overutilized.equals(oldState)) {
             overutilizedNodes.remove(node.getId());
         }
 
         // now reindex node based on its current state
-        if (node.isSwitchedOff())
-        {
+        if (node.isSwitchedOff()) {
             switchedOffNodes.add(node.getId());
-        }
-        else if (node.isIdle())
-        {
+        } else if (node.isIdle()) {
             idleNodes.add(node.getId());
-        }
-        else if (node.isUnderUtilized())
-        {
+        } else if (node.isUnderUtilized()) {
             underutilizedNodes.add(node.getId());
-        }
-        else if (node.isOk())
-        {
+        } else if (node.isOk()) {
             okNodes.add(node.getId());
-        }
-        else if (node.isOverUtilized())
-        {
+        } else if (node.isOverUtilized()) {
             overutilizedNodes.add(node.getId());
         }
     }
 
-    public final boolean addOneVmToComputeNode(int idx)
-    {
+    public final boolean addOneVmToComputeNode(int idx) {
         // return false if the datacenter is exhausted
-        if (isExhausted())
-        {
+        if (isExhausted()) {
             return false;
         }
 
@@ -751,27 +731,22 @@ public class Datacenter
         Iterator<ComputeNode> iterator = computeNodes.values().iterator();
         int count = 0;
         String nodeId = null;
-        while (count <= idx)
-        {
+        while (count <= idx) {
             nodeId = iterator.next().getId();
             count++;
         }
 
         // check if the node is switched off or overutilized
-        if (computeNodes.get(nodeId).isSwitchedOff() || computeNodes.get(nodeId).isOverUtilized())
-        {
+        if (computeNodes.get(nodeId).isSwitchedOff() || computeNodes.get(nodeId).isOverUtilized()) {
             // augment idx
             idx++;
-            if (idx == computeNodes.size())
-            {
+            if (idx == computeNodes.size()) {
                 idx = 0;
             }
 
             // attempt to add the vm to the next compute node
             return addOneVmToComputeNode(idx);
-        }
-        else
-        {
+        } else {
             // add the vm to the compute node
             this.addVirtualMachineInstance(Util.newVm(), nodeId);
 //            System.out.println("VM added to node with id: " + nodeId + " and state: " + computeNodes.get(nodeId).getState());
@@ -793,27 +768,23 @@ public class Datacenter
 //        }
 //        return computeNodes.get(nodeId).isUnderUtilized();
 //    }
-
     /**
-     * Gets the maximum size of this datacenter, which amounts to
-     * the maximum number of compute nodes.
+     * Gets the maximum size of this datacenter, which amounts to the maximum
+     * number of compute nodes.
      *
      * @return
      */
-    public final int getMaximumSize()
-    {
+    public final int getMaximumSize() {
         return computeNodes.size();
     }
 
     /**
-     * Gets the current size of this datacenter, which amounts to
-     * the current number of active (idle, underutilized, ok, overutilized)
-     * compute nodes.
+     * Gets the current size of this datacenter, which amounts to the current
+     * number of active (idle, underutilized, ok, overutilized) compute nodes.
      *
      * @return
      */
-    public final int getCurrentSize()
-    {
+    public final int getCurrentSize() {
         return getActiveComputeNodes(true).size();
     }
 }
