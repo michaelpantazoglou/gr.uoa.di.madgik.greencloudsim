@@ -19,9 +19,11 @@ public abstract class CloudSimulator {
 
     /**
      * Constructor.
+     *
+     * @param compute_nodes
      */
-    protected CloudSimulator(List<ComputeNode> compute_nodes ) {
-        
+    protected CloudSimulator(List<ComputeNode> compute_nodes) {
+
         Datacenter.$().init(compute_nodes);
         energyConsumption = new double[Environment.$().getNumberOfSimulationRounds() / 3600];
         Arrays.fill(energyConsumption, 0d);
@@ -154,6 +156,7 @@ public abstract class CloudSimulator {
             // update the workload on a per-second basis
             updateWorkload(round);
             Datacenter.$().topologyUpdates();
+            SimulationTime.timePlus();
         } // end loop for each simulation round (second)
     }
 

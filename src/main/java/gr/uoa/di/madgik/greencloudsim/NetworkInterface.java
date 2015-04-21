@@ -12,12 +12,15 @@ import java.util.List;
  * @author Skulos
  */
 public abstract class NetworkInterface {
-    /*neighbors in a list*/
+
+    /**
+     * neighbors' ids in a list
+     */
     protected List<String> listNeighbors;
 
     /**
      *
-     * @return all neighbors in a list
+     * @return all neighbors' ids in a list
      */
     public List<String> getListOfNeighbors() {
         return listNeighbors;
@@ -27,7 +30,5 @@ public abstract class NetworkInterface {
      * update the topology neighbors if needed
      */
     public abstract void update();
-
-    public abstract void init();
 
 }

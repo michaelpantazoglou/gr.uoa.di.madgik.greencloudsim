@@ -12,14 +12,19 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        List<ComputeNode> compute_nodes = constructHypercubeTopology(
+        List<ComputeNode> compute_nodes 
+//= 
+//                constructHypercubeTopology(
+//                Environment.$().getHypercubeDimension() - 1,
+//                Environment.$().getUseRandomIds());
+        = Newscast.constructNewsCastTopology(
                 Environment.$().getHypercubeDimension() - 1,
                 Environment.$().getUseRandomIds());
-        CloudSimulator simulator  = 
-                new ConvergenceExperiment(compute_nodes);
-                //new GCLoadBalancingExperiment(compute_nodes);
-                //new RRLoadBalancingExperiment(compute_nodes);
-//                new ElasticityExperiment(compute_nodes);
+        CloudSimulator simulator
+//                = new ConvergenceExperiment(compute_nodes);
+//                =new GCLoadBalancingExperiment(compute_nodes);
+        =new RRLoadBalancingExperiment(compute_nodes);
+//=                new ElasticityExperiment(compute_nodes);
         simulator.run();
 
         System.out.println();

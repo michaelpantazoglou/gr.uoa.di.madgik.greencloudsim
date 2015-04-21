@@ -26,15 +26,6 @@ public class HyperCube extends NetworkInterface {
         neighbors = new HashMap<>();
     }
 
-//    /**
-//     * Gets the neighbor at the specified dimension.
-//     *
-//     * @param dimension 0.. hypercube_dimension - 1
-//     * @return
-//     */
-//    private final String getNeighbor(int dimension) {
-//        return neighbors.get(dimension);
-//    }
     /**
      * Sets the neighbor at the specified dimension.
      *
@@ -55,7 +46,7 @@ public class HyperCube extends NetworkInterface {
     public static List<ComputeNode> constructHypercubeTopology(Integer dimension, boolean useRandomIds) {
         List<ComputeNode> compute_node = constructHypercube(dimension, useRandomIds);
         for (ComputeNode node : compute_node) {
-            node.getInterface().init();
+            ((HyperCube) node.getInterface()).setup();
         }
 
         return compute_node;
@@ -103,8 +94,11 @@ public class HyperCube extends NetworkInterface {
 //        this.listNeighbors = new ArrayList<>(neighbors.values());
     }
 
-    @Override
-    public void init() {
+    /**
+     * The neighbors of hypercube in the current implementation are static, so
+     * only a setup is needed.
+     */
+    public void setup() {
         this.listNeighbors = new ArrayList<>(neighbors.values());
     }
 

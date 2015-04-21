@@ -89,8 +89,7 @@ public class Datacenter {
          * construct hypercube topology
          */
         //TOGO to Hypercube{
-        System.out.format("Constructing the %d-dimensional hypercube...\r\n", Environment.$().getHypercubeDimension());
-
+        // System.out.format("Constructing the %d-dimensional hypercube...\r\n", Environment.$().getHypercubeDimension());
         /**
          * set up compute nodes
          */
@@ -581,7 +580,78 @@ public class Datacenter {
                 }
             }
         }
+        
         return lbResult;
+    }
+
+    /**
+     * VMAN tries to maximize the switched off computer nodes. The less loaded
+     * node will migrate vm's to the most loaded.
+     *
+     * @param a compute node performing the Balancing check
+     * @param b peer compute node selected from a's neighborhood
+     *
+     */
+    protected void balanceVMAN(ComputeNode a, ComputeNode b) {
+        double a1 = a.getCurrentPowerConsumption();
+        double a2 = b.getCurrentPowerConsumption();
+        if (a1 == 0 || a2 == 0) {
+            return;
+        }
+        double max = a.getMaxPowerConsumptionThreshold(); //set max vm
+        double max2 = b.getMaxPowerConsumptionThreshold(); //set max vm 2
+
+        double a1_avail = max - a1;
+        double a2_avail = max2 - a2;
+        double trans = Math.min(Math.min(a1, a2),
+                Math.min(a1_avail, a2_avail));
+        ComputeNode to;
+        ComputeNode from;
+        double fromConsumption = 0;
+
+        if (a1 <= a2) {
+            // PUSH      
+            from = a;
+
+            to = b;
+            a1 -= trans;
+            a2 += trans;
+            fromConsumption = a1;
+        } else {
+            // PULL 
+            from = b;
+            to = a;
+            a1 += trans;
+            a2 -= trans;
+            fromConsumption = a2;
+        }
+        while (from.getWorkload().size() > 0
+                && from.getCurrentPowerConsumption() > fromConsumption) {
+            //check for a suitable vm can be done
+            boolean found = false;
+            int i = 0;
+            //find a vm which can be transfered
+            //not that this is a greedy algorithm, the optimal can be different
+            while (found == false
+                    && i < from.getWorkload().size()) {
+
+                VirtualMachineInstance vm = from.getWorkload().getAt(i++);
+                if (vm.getPowerConsumption()
+                        + to.getCurrentPowerConsumption() <= to.getMaxPowerConsumptionThreshold()) {
+                    to.getWorkload().add(vm);
+                    from.remove(vm);
+                    break;
+                }
+            }
+            if (found == false) {
+                break;
+            }
+        }
+        //should be switched off?
+//        assert (a1 >= 0 && a1 <= max);
+//        assert (a2 >= 0 && a1 <= max);
+//        this.value = (float) a1;
+//        neighbor.value = (float) a2;
     }
 
     /**

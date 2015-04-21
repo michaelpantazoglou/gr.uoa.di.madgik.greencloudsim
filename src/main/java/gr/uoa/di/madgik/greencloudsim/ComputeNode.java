@@ -21,16 +21,16 @@ public class ComputeNode extends Node {
 
         Overutilized, Underutilized, Ok, SwitchedOff, Idle
     }
-    private NetworkInterface networkInteface;
+    private final NetworkInterface networkInteface;
     /**
      * power profile of this node
      */
-    private PowerProfile powerProfile;
+    private final PowerProfile powerProfile;
 
     /**
      * workload of this node
      */
-    private Workload workload;
+    private final Workload workload;
 
     /**
      * state of this node
