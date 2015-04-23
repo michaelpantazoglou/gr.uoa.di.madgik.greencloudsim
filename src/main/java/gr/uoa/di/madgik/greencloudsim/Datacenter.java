@@ -580,7 +580,7 @@ public class Datacenter {
                 }
             }
         }
-        
+
         return lbResult;
     }
 
@@ -588,65 +588,76 @@ public class Datacenter {
      * VMAN tries to maximize the switched off computer nodes. The less loaded
      * node will migrate vm's to the most loaded.
      *
-     * @param a compute node performing the Balancing check
-     * @param b peer compute node selected from a's neighborhood
+     * @param nodeId id of the compute node performing the Balancing check
+     * @return
      *
      */
-    protected void balanceVMAN(ComputeNode a, ComputeNode b) {
-        double a1 = a.getCurrentPowerConsumption();
-        double a2 = b.getCurrentPowerConsumption();
-        if (a1 == 0 || a2 == 0) {
-            return;
-        }
-        double max = a.getMaxPowerConsumptionThreshold(); //set max vm
-        double max2 = b.getMaxPowerConsumptionThreshold(); //set max vm 2
+    public final LBResult balanceVMAN(String nodeId) {
+        ComputeNode thisNode = computeNodes.get(nodeId);
+        LBResult lbResult = new LBResult();
+        for (String peerId : thisNode.getAllNeighbors()) {
+            ComputeNode peer = computeNodes.get(peerId);
 
-        double a1_avail = max - a1;
-        double a2_avail = max2 - a2;
-        double trans = Math.min(Math.min(a1, a2),
-                Math.min(a1_avail, a2_avail));
-        ComputeNode to;
-        ComputeNode from;
-        double fromConsumption = 0;
+            if (peer == null || peer.isSwitchedOff()) {
+                continue;
+            }
+            double a1 = thisNode.getCurrentPowerConsumption();
+            double a2 = peer.getCurrentPowerConsumption();
+            if (a1 == 0 || a2 == 0) {
+                return lbResult;
+            }
+            double max = thisNode.getMaxPowerConsumptionThreshold(); //set max vm
+            double max2 = peer.getMaxPowerConsumptionThreshold(); //set max vm 2
 
-        if (a1 <= a2) {
-            // PUSH      
-            from = a;
+            double a1_avail = max - a1;
+            double a2_avail = max2 - a2;
+            double trans = Math.min(Math.min(a1, a2),
+                    Math.min(a1_avail, a2_avail));
+            ComputeNode to;
+            ComputeNode from;
+            double fromConsumption = 0;
 
-            to = b;
-            a1 -= trans;
-            a2 += trans;
-            fromConsumption = a1;
-        } else {
-            // PULL 
-            from = b;
-            to = a;
-            a1 += trans;
-            a2 -= trans;
-            fromConsumption = a2;
-        }
-        while (from.getWorkload().size() > 0
-                && from.getCurrentPowerConsumption() > fromConsumption) {
-            //check for a suitable vm can be done
-            boolean found = false;
-            int i = 0;
-            //find a vm which can be transfered
-            //not that this is a greedy algorithm, the optimal can be different
-            while (found == false
-                    && i < from.getWorkload().size()) {
+            if (a1 <= a2) {
+                // PUSH      
+                from = thisNode;
 
-                VirtualMachineInstance vm = from.getWorkload().getAt(i++);
-                if (vm.getPowerConsumption()
-                        + to.getCurrentPowerConsumption() <= to.getMaxPowerConsumptionThreshold()) {
-                    to.getWorkload().add(vm);
-                    from.remove(vm);
+                to = peer;
+                a1 -= trans;
+                a2 += trans;
+                fromConsumption = a1;
+            } else {
+                // PULL 
+                from = peer;
+                to = thisNode;
+                a1 += trans;
+                a2 -= trans;
+                fromConsumption = a2;
+            }
+            while (from.getWorkload().size() > 0
+                    && from.getCurrentPowerConsumption() > fromConsumption) {
+                //check for a suitable vm can be done
+                boolean found = false;
+                int i = 0;
+                //find a vm which can be transfered
+                //not that this is a greedy algorithm, the optimal can be different
+                while (found == false
+                        && i < from.getWorkload().size()) {
+
+                    VirtualMachineInstance vm = from.getWorkload().getAt(i++);
+                    if (vm.getPowerConsumption()
+                            + to.getCurrentPowerConsumption() <= to.getMaxPowerConsumptionThreshold()) {
+                        lbResult.incrementVmMigrations();
+                        to.getWorkload().add(vm);
+                        from.remove(vm);
+                        break;
+                    }
+                }
+                if (found == false) {
                     break;
                 }
             }
-            if (found == false) {
-                break;
-            }
         }
+        return lbResult;
         //should be switched off?
 //        assert (a1 >= 0 && a1 <= max);
 //        assert (a2 >= 0 && a1 <= max);

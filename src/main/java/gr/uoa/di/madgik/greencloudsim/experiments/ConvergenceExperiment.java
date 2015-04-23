@@ -14,15 +14,15 @@ import java.util.List;
  *
  * Created by michael on 25/11/14.
  */
-public class ConvergenceExperiment extends GreenCloudSimulator
+public class ConvergenceExperiment extends CloudExperiment
 {
     /** Determines the underutilized - overutilized ratio */
     private static final double underutilizedPercentage = 0.25d;
-     public ConvergenceExperiment(List<ComputeNode> compute_nodes ){
-         super(compute_nodes);
+     public ConvergenceExperiment(){
+         
      }
     @Override
-    protected void setInitialWorkload() throws Exception
+    public void setInitialWorkload() throws Exception
     {
         // initially, all compute nodes are in idle state
         int all = Datacenter.$().getCurrentSize();
@@ -60,7 +60,7 @@ public class ConvergenceExperiment extends GreenCloudSimulator
     }
 
     @Override
-    protected void updateWorkload(int round) throws Exception
+    public void updateWorkload(int round) throws Exception
     {
 
     }

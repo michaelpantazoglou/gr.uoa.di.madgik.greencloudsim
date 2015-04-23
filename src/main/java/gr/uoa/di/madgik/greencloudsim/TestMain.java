@@ -5,11 +5,12 @@
  */
 package gr.uoa.di.madgik.greencloudsim;
 
+import static gr.uoa.di.madgik.greencloudsim.HyperCube.constructHypercubeTopology;
+import gr.uoa.di.madgik.greencloudsim.experiments.CloudExperiment;
 import gr.uoa.di.madgik.greencloudsim.experiments.ConvergenceExperiment;
+import gr.uoa.di.madgik.greencloudsim.experiments.GCLoadBalancingExperiment;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -18,47 +19,15 @@ import java.util.Map;
 public class TestMain {
 
     public static void main(String[] args) throws Exception {
-        List<ComputeNode> compute_nodes
-                //= 
-                //                constructHypercubeTopology(
-                //                Environment.$().getHypercubeDimension() - 1,
-                //                Environment.$().getUseRandomIds());
-                = Newscast.constructNewsCastTopology(
-                        Environment.$().getHypercubeDimension() - 1,
-                        Environment.$().getUseRandomIds());
-        for (ComputeNode node : compute_nodes) {
-            node.switchOn();
-        }
-        int[] counts = new int[compute_nodes.size()];
-        for (int i = 0; i < 10; ++i) {
-            Arrays.fill(counts, 0);
-            SimulationTime.timePlus();
-            for (ComputeNode node : compute_nodes) {
-                node.topologyUpdate();
-            }
-            for (ComputeNode node : compute_nodes) {
+        
+//        }
+        CloudExperiment exp = new ConvergenceExperiment();
+        CloudSimulator simulator
+                = new VManCloudSimulator(exp);
+        simulator.run();
 
-                for (String s : node.getAllNeighbors()) {
-//                    System.out.print(" " + s);
-                    counts[Integer.parseInt(s)]++;
-                }
-            }
-            for (int j = 0; j < counts.length; ++j) {
-                System.out.println("[" + j + "] :" + counts[j]);
-            }
-        }
-        for (ComputeNode node : compute_nodes) {
-            node.switchOff();
-        }
-//        CloudSimulator simulator
-//                = new ConvergenceExperiment(compute_nodes);
-////                =new GCLoadBalancingExperiment(compute_nodes);
-////        =new RRLoadBalancingExperiment(compute_nodes);
-////=                new ElasticityExperiment(compute_nodes);
-//        simulator.run();
-//
-//        System.out.println();
-//
-//        simulator.printOutEnergyConsumption();
+        System.out.println();
+
+        simulator.printOutEnergyConsumption();
     }
 }

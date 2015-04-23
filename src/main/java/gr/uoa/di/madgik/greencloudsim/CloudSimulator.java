@@ -1,6 +1,7 @@
 package gr.uoa.di.madgik.greencloudsim;
 
 import static gr.uoa.di.madgik.greencloudsim.HyperCube.constructHypercubeTopology;
+import gr.uoa.di.madgik.greencloudsim.experiments.CloudExperiment;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public abstract class CloudSimulator {
     /**
      * the cloud's energy consumption (in KWh) for each simulation round (hour)
      */
+    private CloudExperiment experiment;
     private double[] energyConsumption;
 
     /**
@@ -22,8 +24,8 @@ public abstract class CloudSimulator {
      *
      * @param compute_nodes
      */
-    protected CloudSimulator(List<ComputeNode> compute_nodes) {
-
+    protected CloudSimulator(List<ComputeNode> compute_nodes, CloudExperiment exp) {
+        experiment = exp;
         Datacenter.$().init(compute_nodes);
         energyConsumption = new double[Environment.$().getNumberOfSimulationRounds() / 3600];
         Arrays.fill(energyConsumption, 0d);
@@ -35,7 +37,9 @@ public abstract class CloudSimulator {
      *
      * @throws Exception
      */
-    protected abstract void setInitialWorkload() throws Exception;
+    protected void setInitialWorkload() throws Exception {
+        experiment.setInitialWorkload();
+    }
 
     /**
      * Updates the cloud's workload by either adding or removing VM instances
@@ -44,7 +48,9 @@ public abstract class CloudSimulator {
      * @param round
      * @throws Exception
      */
-    protected abstract void updateWorkload(int round) throws Exception;
+    protected void updateWorkload(int round) throws Exception {
+        experiment.updateWorkload(round);
+    }
 
     /**
      * Takes and returns the measurements for the specified round.

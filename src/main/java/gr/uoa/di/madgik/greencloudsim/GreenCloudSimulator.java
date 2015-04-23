@@ -1,5 +1,7 @@
 package gr.uoa.di.madgik.greencloudsim;
 
+import static gr.uoa.di.madgik.greencloudsim.HyperCube.constructHypercubeTopology;
+import gr.uoa.di.madgik.greencloudsim.experiments.CloudExperiment;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,10 +13,12 @@ import java.util.List;
  *
  * Created by michael on 21/11/14.
  */
-public abstract class GreenCloudSimulator extends CloudSimulator {
+public class GreenCloudSimulator extends CloudSimulator {
 
-    protected GreenCloudSimulator(List<ComputeNode> compute_nodes) {
-        super(compute_nodes);
+    protected GreenCloudSimulator(CloudExperiment exp) {
+        super(constructHypercubeTopology(
+                Environment.$().getHypercubeDimension() - 1,
+                Environment.$().getUseRandomIds()), exp);
     }
 
     @Override

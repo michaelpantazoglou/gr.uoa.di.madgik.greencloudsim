@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by michael on 21/11/14.
  */
-public class GCLoadBalancingExperiment extends GreenCloudSimulator {
+public class GCLoadBalancingExperiment extends CloudExperiment {
 
     private static final int INITIAL_WORKLOAD_SIZE = 0;
 
@@ -23,18 +23,17 @@ public class GCLoadBalancingExperiment extends GreenCloudSimulator {
      * @param compute_nodes
      * @throws Exception
      */
-    public GCLoadBalancingExperiment(List<ComputeNode> compute_nodes) throws Exception {
-        super(compute_nodes);
+    public GCLoadBalancingExperiment(){
 //        randomSequence = Util.loadRandomSequenceFromFile();
     }
 
     @Override
-    protected void setInitialWorkload() throws Exception {
+    public void setInitialWorkload() throws Exception {
         // 0 vms
     }
 
     @Override
-    protected void updateWorkload(int round) throws Exception {
+    public void updateWorkload(int round) throws Exception {
         if (round % WORKLOAD_UPDATE_PERIOD != 0) {
             return;
         }

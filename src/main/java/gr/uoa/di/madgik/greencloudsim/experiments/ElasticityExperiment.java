@@ -14,7 +14,7 @@ import java.util.List;
  *
  * Created by michael on 21/11/14.
  */
-public class ElasticityExperiment extends GreenCloudSimulator {
+public class ElasticityExperiment extends CloudExperiment {
 
     /**
      * number of VM instances to add/remove in each simulation round
@@ -34,22 +34,22 @@ public class ElasticityExperiment extends GreenCloudSimulator {
      * @param compute_nodes
      * @throws Exception
      */
-    public ElasticityExperiment(List<ComputeNode> compute_nodes) throws Exception {
+    public ElasticityExperiment() throws Exception {
 
-        super(compute_nodes);
+      
 
         randomSequence = Util.loadRandomSequenceFromFile();
     }
 
     @Override
-    protected void setInitialWorkload() throws Exception {
+    public void setInitialWorkload() throws Exception {
         for (int i = 0; i < WORKLOAD_INITIAL_SIZE; i++) {
             Datacenter.$().addOneVm(false);
         }
     }
 
     @Override
-    protected void updateWorkload(int round) throws Exception {
+    public void updateWorkload(int round) throws Exception {
         if (randomSequence[round - 1] == 0) {
             for (int i = 0; i < WORKLOAD_UPDATE_SIZE; i++) {
                 Datacenter.$().removeOneVm();

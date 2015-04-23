@@ -64,7 +64,7 @@ public class Newscast extends NetworkInterface {
      *
      * @return null if no accessible peers are found, the peer otherwise.
      */
-    private ComputeNode getPeer() {
+    public ComputeNode getPeer() {
 
         final int d = degree();
         if (d == 0) {
@@ -202,21 +202,38 @@ public class Newscast extends NetworkInterface {
      */
     public static List<ComputeNode> constructNewsCastTopology(Integer dimension, boolean useRandomIds) {
         ArrayList<ComputeNode> nodes = new ArrayList<>();
-        Newscast network = new Newscast(dimension);
+        Newscast network = new Newscast(dimension * 2);
         ComputeNode previous = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID()
                 : IdentityGenerator.newComputeNodeId(), network);
         network.init(previous);
         nodes.add(previous);
+        network.refreshNeighborsNames();
         for (int i = 1; i < Math.pow(2, dimension); ++i) {
-            Newscast tempNetwork = new Newscast(dimension);
+            Newscast tempNetwork = new Newscast(dimension * 2);
             ComputeNode temp = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID()
                     : IdentityGenerator.newComputeNodeId(), tempNetwork);
             tempNetwork.init(temp);
-            ((Newscast) temp.getInterface()).addNeighbor(previous);
+            tempNetwork.addNeighbor(previous);
+            tempNetwork.refreshNeighborsNames();
             nodes.add(temp);
             previous = temp;
         }
+        for (ComputeNode node : nodes) {
+            node.switchOn();
+        }
 
+        for (int i = 0; i < 3; ++i) {
+
+            SimulationTime.timePlus();
+
+            for (ComputeNode node : nodes) {
+                node.topologyUpdate();
+            }
+
+        }
+        for (ComputeNode node : nodes) {
+            node.switchOff();
+        }
         return nodes;
     }
 
@@ -235,7 +252,7 @@ public class Newscast extends NetworkInterface {
     }
 
     /**
-     * Return tΦhe number of neighbors, which might be less than cache size.
+     * Return the number of neighbors, which might be less than cache size.
      */
     private int degree() {
 
@@ -318,21 +335,21 @@ public class Newscast extends NetworkInterface {
         tstamps[0] = peer.tstamps[0] = SimulationTime.getTime();
         cache[0] = peerComputeNode;
         peer.cache[0] = node;
-        listNeighbors = getNeighborsNames();
-        peer.listNeighbors = peer.getNeighborsNames();
+        refreshNeighborsNames();
+        peer.refreshNeighborsNames();
     }
 
-    private List<String> getNeighborsNames() {
+    private void refreshNeighborsNames() {
 
         ArrayList<String> neighbors = new ArrayList<>();
+
         for (int i = 0; i < cache.length; ++i) {
-            if (cache[i] != null && !cache[i].isSwitchedOff()) {
+            if (cache[i] != null) {
                 neighbors.add(cache[i].getId());
             }
         }
 
-        return neighbors;
-
+        this.listNeighbors = neighbors;
     }
 
     @Override
