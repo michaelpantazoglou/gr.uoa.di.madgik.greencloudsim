@@ -6,7 +6,6 @@
 package gr.uoa.di.madgik.greencloudsim;
 
 import gr.uoa.di.madgik.greencloudsim.experiments.CloudExperiment;
-import java.util.List;
 
 public class VManCloudSimulator extends CloudSimulator {
 

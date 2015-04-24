@@ -35,7 +35,7 @@ public class ElasticityExperiment extends CloudExperiment {
      * @throws Exception
      */
     public ElasticityExperiment() throws Exception {
-
+            name = "Elasticity";
       
 
         randomSequence = Util.loadRandomSequenceFromFile();

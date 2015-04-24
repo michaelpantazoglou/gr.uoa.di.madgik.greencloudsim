@@ -586,7 +586,7 @@ public class Datacenter {
 
     /**
      * VMAN tries to maximize the switched off computer nodes. The less loaded
-     * node will migrate vm's to the most loaded.
+     * node will migrate vms to the most loaded.
      *
      * @param nodeId id of the compute node performing the Balancing check
      * @return
@@ -639,15 +639,17 @@ public class Datacenter {
                 boolean found = false;
                 int i = 0;
                 //find a vm which can be transfered
-                //not that this is a greedy algorithm, the optimal can be different
+                //note that this is a greedy algorithm, the optimal can be different
                 while (found == false
                         && i < from.getWorkload().size()) {
 
                     VirtualMachineInstance vm = from.getWorkload().getAt(i++);
-                    if (vm.getPowerConsumption()
-                            + to.getCurrentPowerConsumption() <= to.getMaxPowerConsumptionThreshold()) {
+                    if ((vm.getPowerConsumption()
+                            + to.getCurrentPowerConsumption())
+                            <= to.getMaxPowerConsumptionThreshold()) {
+
                         lbResult.incrementVmMigrations();
-                        to.getWorkload().add(vm);
+                        to.add(vm);
                         from.remove(vm);
                         break;
                     }

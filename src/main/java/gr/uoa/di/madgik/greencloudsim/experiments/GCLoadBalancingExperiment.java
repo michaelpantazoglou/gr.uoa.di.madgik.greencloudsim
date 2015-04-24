@@ -24,6 +24,7 @@ public class GCLoadBalancingExperiment extends CloudExperiment {
      * @throws Exception
      */
     public GCLoadBalancingExperiment(){
+             name = "GCLoadBalancing";
 //        randomSequence = Util.loadRandomSequenceFromFile();
     }
 

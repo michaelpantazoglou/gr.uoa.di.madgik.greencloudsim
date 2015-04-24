@@ -9,9 +9,19 @@ package gr.uoa.di.madgik.greencloudsim.experiments;
  *
  * @author gavriil
  */
-public class CloudExperiment {
-    public  void setInitialWorkload() throws Exception{
-        
+public abstract class CloudExperiment {
+
+    protected boolean performLoadBalancing = true;
+    protected String name = "";
+
+    public String getName() {
+        return name;
+    }
+
+    public abstract void setInitialWorkload() throws Exception;
+
+    public boolean isPerformLoadBalancing() {
+        return performLoadBalancing;
     }
 
     /**
@@ -21,7 +31,5 @@ public class CloudExperiment {
      * @param round
      * @throws Exception
      */
-    public  void updateWorkload(int round)  throws Exception{
-        
-    }
+    public abstract void updateWorkload(int round) throws Exception;
 }

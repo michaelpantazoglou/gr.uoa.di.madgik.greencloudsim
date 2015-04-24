@@ -339,7 +339,7 @@ public class Newscast extends NetworkInterface {
         peer.refreshNeighborsNames();
     }
 
-    private void refreshNeighborsNames() {
+    public void refreshNeighborsNames() {
 
         ArrayList<String> neighbors = new ArrayList<>();
 

@@ -89,6 +89,7 @@ public abstract class CloudSimulator {
      * @throws Exception
      */
     public final void run() throws Exception {
+        System.out.println(" running "+experiment.getName()+" experiment!");
         int hours = 0;
         int period = Environment.$().getPeriod();
 
@@ -116,7 +117,8 @@ public abstract class CloudSimulator {
 
             // periodicly perform load balancing
             if (round % period == 0) {
-                LBResult lbResult = performLoadBalancing();
+                LBResult lbResult = (experiment.isPerformLoadBalancing())
+                        ? performLoadBalancing() : new LBResult();
                 vmMigrations += lbResult.getVmMigrations();
                 switchOffs += lbResult.getSwitchOffs();
                 switchOns += lbResult.getSwitchOns();

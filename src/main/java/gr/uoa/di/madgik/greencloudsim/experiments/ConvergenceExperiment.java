@@ -19,7 +19,7 @@ public class ConvergenceExperiment extends CloudExperiment
     /** Determines the underutilized - overutilized ratio */
     private static final double underutilizedPercentage = 0.25d;
      public ConvergenceExperiment(){
-         
+         name = "Converge";
      }
     @Override
     public void setInitialWorkload() throws Exception
