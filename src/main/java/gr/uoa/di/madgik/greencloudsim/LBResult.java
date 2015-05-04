@@ -5,63 +5,53 @@ package gr.uoa.di.madgik.greencloudsim;
  *
  * Created by michael on 27/11/14.
  */
-public class LBResult
-{
-	private int vmMigrations;
+public class LBResult {
 
-	private int switchOns;
+    private int vmMigrations;
 
-	private int switchOffs;
+    private int switchOns;
 
-	public LBResult()
-	{
-		vmMigrations = 0;
-		switchOffs = 0;
-		switchOns = 0;
-	}
+    private int switchOffs;
 
-	public int getVmMigrations()
-	{
-		return vmMigrations;
-	}
+    public LBResult() {
+        vmMigrations = 0;
+        switchOffs = 0;
+        switchOns = 0;
+    }
 
-	public void setVmMigrations(int vmMigrations)
-	{
-		this.vmMigrations = vmMigrations;
-	}
+    public int getVmMigrations() {
+        return vmMigrations;
+    }
 
-	public int getSwitchOns()
-	{
-		return switchOns;
-	}
+    public void setVmMigrations(int vmMigrations) {
+        this.vmMigrations = vmMigrations;
+    }
 
-	public void setSwitchOns(int switchOns)
-	{
-		this.switchOns = switchOns;
-	}
+    public int getSwitchOns() {
+        return switchOns;
+    }
 
-	public int getSwitchOffs()
-	{
-		return switchOffs;
-	}
+    public void setSwitchOns(int switchOns) {
+        this.switchOns = switchOns;
+    }
 
-	public void setSwitchOffs(int switchOffs)
-	{
-		this.switchOffs = switchOffs;
-	}
+    public int getSwitchOffs() {
+        return switchOffs;
+    }
 
-	public void incrementVmMigrations()
-	{
-		vmMigrations++;
-	}
+    public void setSwitchOffs(int switchOffs) {
+        this.switchOffs = switchOffs;
+    }
 
-	public void incrementSwitchOffs()
-	{
-		switchOffs++;
-	}
+    public void incrementVmMigrations() {
+        vmMigrations++;
+    }
 
-	public void incrementSwitchOns()
-	{
-		switchOns++;
-	}
+    public void incrementSwitchOffs() {
+        switchOffs++;
+    }
+
+    public void incrementSwitchOns() {
+        switchOns++;
+    }
 }

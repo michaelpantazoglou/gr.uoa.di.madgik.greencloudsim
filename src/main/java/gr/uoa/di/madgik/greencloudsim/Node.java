@@ -5,8 +5,8 @@ package gr.uoa.di.madgik.greencloudsim;
  *
  * Created by michael on 17/11/14.
  */
-public abstract class Node
-{
+public abstract class Node {
+
     protected String id;
 
     /**
@@ -14,8 +14,7 @@ public abstract class Node
      *
      * @param id the node id
      */
-    protected Node(String id)
-    {
+    protected Node(String id) {
         this.id = id;
     }
 

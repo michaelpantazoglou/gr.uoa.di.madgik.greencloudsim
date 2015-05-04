@@ -1,9 +1,6 @@
 package gr.uoa.di.madgik.greencloudsim.experiments;
 
-import gr.uoa.di.madgik.greencloudsim.ComputeNode;
 import gr.uoa.di.madgik.greencloudsim.Datacenter;
-import gr.uoa.di.madgik.greencloudsim.GreenCloudSimulator;
-import java.util.List;
 
 /**
  * Created by michael on 21/11/14.
@@ -23,8 +20,8 @@ public class GCLoadBalancingExperiment extends CloudExperiment {
      * @param compute_nodes
      * @throws Exception
      */
-    public GCLoadBalancingExperiment(){
-             name = "GCLoadBalancing";
+    public GCLoadBalancingExperiment() {
+        name = "GCLoadBalancing";
 //        randomSequence = Util.loadRandomSequenceFromFile();
     }
 

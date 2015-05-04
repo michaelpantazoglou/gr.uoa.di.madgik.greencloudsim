@@ -201,6 +201,7 @@ public class Newscast extends NetworkInterface {
      * @return
      */
     public static List<ComputeNode> constructNewsCastTopology(Integer dimension, boolean useRandomIds) {
+
         ArrayList<ComputeNode> nodes = new ArrayList<>();
         Newscast network = new Newscast(dimension * 2);
         ComputeNode previous = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID()

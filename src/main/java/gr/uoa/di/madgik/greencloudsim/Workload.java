@@ -5,24 +5,27 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Implements the workload of a compute node. The workload consists
- * of zero or more Virtual Machine (VM) instances.
+ * Implements the workload of a compute node. The workload consists of zero or
+ * more Virtual Machine (VM) instances.
  *
  * Created by michael on 17/11/14.
  */
-public class Workload
-{
-    /** the actual workload content*/
+public class Workload {
+
+    /**
+     * the actual workload content
+     */
     private HashMap<String, VirtualMachineInstance> content;
 
-    /** the power consumption of this workload */
+    /**
+     * the power consumption of this workload
+     */
     private double powerConsumption = 0d;
 
     /**
      * Constructor.
      */
-    public Workload()
-    {
+    public Workload() {
         content = new HashMap<>();
     }
 
@@ -31,8 +34,7 @@ public class Workload
      *
      * @param vm
      */
-    public final void add(VirtualMachineInstance vm)
-    {
+    public final void add(VirtualMachineInstance vm) {
         content.put(vm.getId(), vm);
         powerConsumption += vm.getPowerConsumption();
     }
@@ -42,8 +44,7 @@ public class Workload
      *
      * @param vm
      */
-    public final void remove(VirtualMachineInstance vm)
-    {
+    public final void remove(VirtualMachineInstance vm) {
         content.remove(vm.getId());
         powerConsumption -= vm.getPowerConsumption();
     }
@@ -53,8 +54,7 @@ public class Workload
      *
      * @param vmId
      */
-    public final void remove(String vmId)
-    {
+    public final void remove(String vmId) {
         VirtualMachineInstance vm = content.remove(vmId);
         powerConsumption -= vm.getPowerConsumption();
     }
@@ -64,11 +64,9 @@ public class Workload
      *
      * @param pos
      */
-    public final void removeAt(int pos)
-    {
+    public final void removeAt(int pos) {
         List<String> l = new ArrayList<>();
-        for (String s : content.keySet())
-        {
+        for (String s : content.keySet()) {
             l.add(s);
         }
         String s = l.get(pos);
@@ -82,11 +80,9 @@ public class Workload
      * @param pos
      * @return
      */
-    public final VirtualMachineInstance getAt(int pos)
-    {
+    public final VirtualMachineInstance getAt(int pos) {
         List<String> l = new ArrayList<>();
-        for (String s : content.keySet())
-        {
+        for (String s : content.keySet()) {
             l.add(s);
         }
         String s = l.get(pos);
@@ -98,8 +94,7 @@ public class Workload
      *
      * @return
      */
-    public final int size()
-    {
+    public final int size() {
         return content.size();
     }
 
@@ -108,8 +103,7 @@ public class Workload
      *
      * @return
      */
-    public final double getPowerConsumption()
-    {
+    public final double getPowerConsumption() {
 //        double powerConsumption = 0d;
 //
 //        for (VirtualMachineInstance vm : content.values())
@@ -123,9 +117,8 @@ public class Workload
     /**
      * Clears this workload.
      */
-    public void clear()
-    {
+    public void clear() {
         content.clear();
-        powerConsumption = 0; 
+        powerConsumption = 0;
     }
 }

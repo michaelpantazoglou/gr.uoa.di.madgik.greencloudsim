@@ -1,10 +1,7 @@
 package gr.uoa.di.madgik.greencloudsim.experiments;
 
-import gr.uoa.di.madgik.greencloudsim.ComputeNode;
 import gr.uoa.di.madgik.greencloudsim.Datacenter;
-import gr.uoa.di.madgik.greencloudsim.GreenCloudSimulator;
 import gr.uoa.di.madgik.greencloudsim.Util;
-import java.util.List;
 
 /**
  * Implements the elasticity experiment. The goal of this experiment is to
@@ -35,8 +32,7 @@ public class ElasticityExperiment extends CloudExperiment {
      * @throws Exception
      */
     public ElasticityExperiment() throws Exception {
-            name = "Elasticity";
-      
+        name = "Elasticity";
 
         randomSequence = Util.loadRandomSequenceFromFile();
     }

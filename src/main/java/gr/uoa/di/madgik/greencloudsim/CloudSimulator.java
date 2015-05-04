@@ -1,6 +1,5 @@
 package gr.uoa.di.madgik.greencloudsim;
 
-import static gr.uoa.di.madgik.greencloudsim.HyperCube.constructHypercubeTopology;
 import gr.uoa.di.madgik.greencloudsim.experiments.CloudExperiment;
 import java.util.Arrays;
 import java.util.List;
@@ -89,7 +88,7 @@ public abstract class CloudSimulator {
      * @throws Exception
      */
     public final void run() throws Exception {
-        System.out.println(" running "+experiment.getName()+" experiment!");
+        System.out.println(" running " + experiment.getName() + " experiment!");
         int hours = 0;
         int period = Environment.$().getPeriod();
 

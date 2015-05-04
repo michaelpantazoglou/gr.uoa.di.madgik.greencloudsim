@@ -50,11 +50,10 @@ public class TestMain {
         a.add(Util.newVm());
         a.add(Util.newVm());
         a.add(Util.newVm());
-     
-       
+
         a.add(Util.newVm());
         b.add(Util.newVm());
-     
+
         System.out.println(" a : " + a.getCurrentPowerConsumption() + " / " + a.getMaxPowerConsumptionThreshold());
         System.out.println(" b : " + b.getCurrentPowerConsumption() + " / " + b.getMaxPowerConsumptionThreshold());
 

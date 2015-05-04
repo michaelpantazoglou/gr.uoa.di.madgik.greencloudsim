@@ -7,8 +7,7 @@ import java.util.UUID;
  *
  * Created by michael on 17/11/14.
  */
-public class IdentityGenerator
-{
+public class IdentityGenerator {
 
     // counter of compute nodes, used for generation of sequential compute node ids.
     private static int computeNodesCounter = 0;
@@ -21,8 +20,7 @@ public class IdentityGenerator
      *
      * @return
      */
-    public static String newRandomUUID()
-    {
+    public static String newRandomUUID() {
         return UUID.randomUUID().toString();
     }
 
@@ -31,17 +29,16 @@ public class IdentityGenerator
      *
      * @return
      */
-    public static String newComputeNodeId()
-    {
+    public static String newComputeNodeId() {
         return String.valueOf(computeNodesCounter++);
     }
 
     /**
      * Generates and returns a new sequential vm instance id.
+     *
      * @return
      */
-    public static String newVmInstanceId()
-    {
+    public static String newVmInstanceId() {
         return String.valueOf(vmInstancesCounter++);
     }
 }

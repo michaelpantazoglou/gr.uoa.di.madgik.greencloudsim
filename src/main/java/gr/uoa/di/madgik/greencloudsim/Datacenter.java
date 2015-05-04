@@ -1,6 +1,5 @@
 package gr.uoa.di.madgik.greencloudsim;
 
-import static gr.uoa.di.madgik.greencloudsim.HyperCube.constructHypercubeTopology;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -595,6 +594,8 @@ public class Datacenter {
     public final LBResult balanceVMAN(String nodeId) {
         ComputeNode thisNode = computeNodes.get(nodeId);
         LBResult lbResult = new LBResult();
+
+        //VMan loop for each peer
         for (String peerId : thisNode.getAllNeighbors()) {
             ComputeNode peer = computeNodes.get(peerId);
 
@@ -604,7 +605,7 @@ public class Datacenter {
             double a1 = thisNode.getCurrentPowerConsumption();
             double a2 = peer.getCurrentPowerConsumption();
             if (a1 == 0 || a2 == 0) {
-                return lbResult;
+                continue;
             }
             double max = thisNode.getMaxPowerConsumptionThreshold(); //set max vm
             double max2 = peer.getMaxPowerConsumptionThreshold(); //set max vm 2

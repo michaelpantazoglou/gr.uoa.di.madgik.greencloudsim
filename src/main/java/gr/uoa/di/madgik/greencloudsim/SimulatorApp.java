@@ -17,7 +17,7 @@ public class SimulatorApp {
      * @param args
      * @throws Exception
      */
-     static void load(String[] args) throws Exception {
+    static void load(String[] args) throws Exception {
         List<ComputeNode> compute_nodes = constructHypercubeTopology(
                 Environment.$().getHypercubeDimension() - 1, Environment.$().getUseRandomIds());
         Datacenter.$().init(compute_nodes);

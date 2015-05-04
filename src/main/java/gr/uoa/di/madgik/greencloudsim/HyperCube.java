@@ -43,8 +43,10 @@ public class HyperCube extends NetworkInterface {
      * @param useRandomIds if true, the ids of nodes are random
      * @return a List of ComputeNode
      */
-    public static List<ComputeNode> constructHypercubeTopology(Integer dimension, boolean useRandomIds) {
-        List<ComputeNode> compute_node = constructHypercube(dimension, useRandomIds);
+    public static List<ComputeNode> constructHypercubeTopology(Integer dimension,
+            boolean useRandomIds) {
+        List<ComputeNode> compute_node
+                = constructHypercube(dimension, useRandomIds);
         for (ComputeNode node : compute_node) {
             ((HyperCube) node.getInterface()).setup();
         }
@@ -52,16 +54,21 @@ public class HyperCube extends NetworkInterface {
         return compute_node;
     }
 
-    private static List<ComputeNode> constructHypercube(Integer dimension, boolean useRandomIds) {
+    private static List<ComputeNode> constructHypercube(Integer dimension,
+            boolean useRandomIds) {
 
         List<ComputeNode> computeNodes = new ArrayList<>();
 
         if (dimension == 0) {
 
-            ComputeNode n1 = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID() : IdentityGenerator.newComputeNodeId(), new HyperCube());
+            ComputeNode n1 = new ComputeNode(useRandomIds
+                    ? IdentityGenerator.newRandomUUID()
+                    : IdentityGenerator.newComputeNodeId(), new HyperCube());
             computeNodes.add(n1);
 
-            ComputeNode n2 = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID() : IdentityGenerator.newComputeNodeId(), new HyperCube());
+            ComputeNode n2 = new ComputeNode(useRandomIds
+                    ? IdentityGenerator.newRandomUUID()
+                    : IdentityGenerator.newComputeNodeId(), new HyperCube());
             computeNodes.add(n2);
 
             ((HyperCube) n1.getInterface()).setNeighbor(dimension, n2.getId());
@@ -74,13 +81,14 @@ public class HyperCube extends NetworkInterface {
         List<ComputeNode> l2 = constructHypercube(dimension - 1, useRandomIds);
 
         for (int i = 0; i < Math.pow(2, dimension); i++) {
-            ((HyperCube) (l1.get(i).getInterface())).setNeighbor(dimension, l2.get(i).getId());
-            ((HyperCube) (l2.get(i).getInterface())).setNeighbor(dimension, l1.get(i).getId());
+            ((HyperCube) (l1.get(i).getInterface())).setNeighbor(dimension,
+                    l2.get(i).getId());
+            ((HyperCube) (l2.get(i).getInterface())).setNeighbor(dimension,
+                    l1.get(i).getId());
         }
 
         List<ComputeNode> l = new ArrayList<>(l1);
         l.addAll(l2);
-//        time++;
 
         return l;
     }

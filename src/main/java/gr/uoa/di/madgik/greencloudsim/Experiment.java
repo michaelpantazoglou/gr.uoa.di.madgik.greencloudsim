@@ -6,9 +6,12 @@ package gr.uoa.di.madgik.greencloudsim;
  * Created by michael on 17/11/14.
  */
 @Deprecated
-public abstract class Experiment
-{
-    /** holds the cloud's energy consumption in KWh for each hour of the experiment */
+public abstract class Experiment {
+
+    /**
+     * holds the cloud's energy consumption in KWh for each hour of the
+     * experiment
+     */
     protected double[] energyConsumption;
 
     /**
@@ -46,15 +49,15 @@ public abstract class Experiment
      *
      * @throws Exception
      */
-    public final void run() throws Exception
-    {
+    public final void run() throws Exception {
         Datacenter.$();
 
         doUponStartup();
 
-        /** run the specified number of rounds */
-        for (int round=1; round<= Environment.$().getNumberOfSimulationRounds(); round++)
-        {
+        /**
+         * run the specified number of rounds
+         */
+        for (int round = 1; round <= Environment.$().getNumberOfSimulationRounds(); round++) {
             takeMeasurements(round);
             doAfterRound(round);
         }

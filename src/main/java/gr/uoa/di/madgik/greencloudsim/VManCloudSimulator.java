@@ -11,7 +11,7 @@ public class VManCloudSimulator extends CloudSimulator {
 
     public VManCloudSimulator(CloudExperiment exp) {
         super(Newscast.constructNewsCastTopology(
-                Environment.$().getHypercubeDimension(),
+                Environment.$().getNewsCastDimension(),
                 Environment.$().getUseRandomIds()), exp);
     }
 

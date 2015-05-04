@@ -7,13 +7,20 @@ package gr.uoa.di.madgik.greencloudsim;
  */
 public class PowerProfile {
 
-    /** Power consumption when the node is idle */
+    /**
+     * Power consumption when the node is idle
+     */
     private Double idlePowerConsumption;
 
-    /** Power consumption threshold below which the node should try to switch off */
+    /**
+     * Power consumption threshold below which the node should try to switch off
+     */
     private Double minThreshold;
 
-    /** Power consumption threshold above which the node should try to reduce its energy consumption */
+    /**
+     * Power consumption threshold above which the node should try to reduce its
+     * energy consumption
+     */
     private Double maxThreshold;
 
     /**
