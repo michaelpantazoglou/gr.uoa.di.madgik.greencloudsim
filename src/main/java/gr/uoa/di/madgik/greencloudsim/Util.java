@@ -51,4 +51,33 @@ public class Util {
             }
         }
     }
+
+    private static int diffVersions(ArrayList<String> oldWorkload, ArrayList<String> newWorkload) {
+        int keptVMs = 0;
+        for (String newId : newWorkload) {
+            for (String oldId : oldWorkload) {
+                if (oldId.equals(newId)) {
+                    keptVMs++;
+                    break;
+                }
+            }
+        }
+        return newWorkload.size() - keptVMs;
+    }
+
+    static int optimalDiff(ArrayList<ArrayList<String>> oldWorkloads, ArrayList<ArrayList<String>> newWorkloads) {
+        int migrations = 0;
+        for (int i = 0; i < oldWorkloads.size(); ++i) {
+            migrations += Math.abs(oldWorkloads.get(i).size() - newWorkloads.get(i).size());
+        }
+        return migrations/2;
+    }
+
+    static int diff(ArrayList<ArrayList<String>> oldWorkloads, ArrayList<ArrayList<String>> newWorkloads) {
+        int migrations = 0;
+        for (int i = 0; i < oldWorkloads.size(); ++i) {
+            migrations += diffVersions(oldWorkloads.get(i), newWorkloads.get(i));
+        }
+        return migrations;
+    }
 }

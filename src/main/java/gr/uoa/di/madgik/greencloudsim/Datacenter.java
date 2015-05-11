@@ -60,6 +60,22 @@ public class Datacenter {
         return sharedInstance;
     }
 
+    public ArrayList<ArrayList<String>> getWorkloads() {
+
+        ArrayList<ArrayList<String>> workloads = new ArrayList<>();
+        for (int i = 0; i < computeNodes.size(); ++i) {
+            workloads.add(new ArrayList<>());
+        }
+        int i = 0;
+        for (ComputeNode node : computeNodes.values()) {
+            ArrayList<String> vms = workloads.get(i++);
+            for (Object id : node.getWorkload().getVMS()) {
+                vms.add(((VirtualMachineInstance) id).getId());
+            }
+        }
+        return workloads;
+    }
+
     /**
      * Make topology updates if the topology is dynamically changed
      */
@@ -318,6 +334,13 @@ public class Datacenter {
         return okNodes;
     }
 
+    /**
+     * Gets all Ok, underutilized and idle computeNodes, if flag is true it will
+     * return overutilized nodes too.
+     *
+     * @param includeOverutilized
+     * @return
+     */
     public final List<String> getActiveComputeNodes(boolean includeOverutilized) {
         List<String> result = new ArrayList<>();
 //        for (ComputeNode computeNode : computeNodes.values())
@@ -386,12 +409,10 @@ public class Datacenter {
         if (!computeNode.isOverUtilized()) {
             return lbResult;
         }
-
-        List<String> ok = computeNode.getOkNeighbors();
-        List<String> underutilized = computeNode.getUnderutilizedNeighbors();
-        List<String> idle = computeNode.getIdleNeighbors();
-        List<String> switchedOff = computeNode.getSwitchedOffNeighbors();
-
+        List<String> ok = Datacenter.$().okNodes;
+        List<String> underutilized = Datacenter.$().underutilizedNodes;
+        List<String> idle = Datacenter.$().idleNodes;
+        List<String> switchedOff = Datacenter.$().switchedOffNodes;
         List<String> targetNeighbors = new ArrayList<>();
         for (String s : ok) {
             targetNeighbors.add(s);
@@ -410,6 +431,9 @@ public class Datacenter {
          * loop for each neighbor
          */
         for (String id : targetNeighbors) {
+            if (id.equals(nodeId)) {
+                continue;
+            }
             ComputeNode neighbor = computeNodes.get(id);
 
             /**
@@ -452,7 +476,6 @@ public class Datacenter {
                 if (!computeNode.isOverUtilized() || !migrationAllowed) {
                     break;
                 }
-
                 /**
                  * perform migration
                  */
@@ -476,7 +499,6 @@ public class Datacenter {
                     break;
                 }
             }
-
             /**
              * break loop if the node is no more overutilized
              */
@@ -484,7 +506,6 @@ public class Datacenter {
                 break;
             }
         }
-
 //		System.out.println("Node " + nodeId + " migrated " + lbResult.getVmMigrations());
         return lbResult;
     }
@@ -512,8 +533,12 @@ public class Datacenter {
         /**
          * loop for each neighbor
          */
-        for (String id : computeNode.getAllNeighbors()) {
-
+        ArrayList<String> peers = new ArrayList<>();
+        peers.addAll(Datacenter.$().getActiveComputeNodes(false));
+        for (String id : peers) {
+            if (id.equals(nodeId)) {
+                continue;
+            }
             ComputeNode neighbor = computeNodes.get(id);
 
             /**
@@ -542,7 +567,8 @@ public class Datacenter {
                 /**
                  * calculate the maximum number of vms that can be migrated
                  */
-                double Emax = (neighbor.getMaxPowerConsumptionThreshold() - neighbor.getCurrentPowerConsumption());
+                double Emax = (neighbor.getMaxPowerConsumptionThreshold()
+                        - neighbor.getCurrentPowerConsumption());
                 double Evm = vm.getPowerConsumption();
 
                 boolean migrationAllowed = (Evm < Emax);
@@ -587,29 +613,37 @@ public class Datacenter {
      * VMAN tries to maximize the switched off computer nodes. The less loaded
      * node will migrate vms to the most loaded.
      *
-     * @param nodeId id of the compute node performing the Balancing check
+     * @param thisNodeID id of the compute node performing the Balancing check
      * @return
      *
      */
-    public final LBResult balanceVMAN(String nodeId) {
-        ComputeNode thisNode = computeNodes.get(nodeId);
+    public final LBResult balanceVMAN(String thisNodeID) {
+        ComputeNode thisNode = computeNodes.get(thisNodeID);
         LBResult lbResult = new LBResult();
+        if (thisNode == null || thisNode.isSwitchedOff() || thisNode.isIdle()) {
+            return lbResult;
+        }
 
         //VMan loop for each peer
         for (String peerId : thisNode.getAllNeighbors()) {
             ComputeNode peer = computeNodes.get(peerId);
 
+            //find a suitable peer
             if (peer == null || peer.isSwitchedOff()) {
                 continue;
             }
+
             double a1 = thisNode.getCurrentPowerConsumption();
             double a2 = peer.getCurrentPowerConsumption();
-            if (a1 == 0 || a2 == 0) {
+
+            if (thisNode.isIdle()) {
+                break;
+            }
+            if (peer.isIdle()) {
                 continue;
             }
-            double max = thisNode.getMaxPowerConsumptionThreshold(); //set max vm
-            double max2 = peer.getMaxPowerConsumptionThreshold(); //set max vm 2
-
+            double max = thisNode.getMaxPowerConsumptionThreshold();
+            double max2 = peer.getMaxPowerConsumptionThreshold();
             double a1_avail = max - a1;
             double a2_avail = max2 - a2;
             double trans = Math.min(Math.min(a1, a2),
@@ -634,22 +668,24 @@ public class Datacenter {
                 a2 -= trans;
                 fromConsumption = a2;
             }
+            // Vman main loop
             while (from.getWorkload().size() > 0
                     && from.getCurrentPowerConsumption() > fromConsumption) {
                 //check for a suitable vm can be done
                 boolean found = false;
                 int i = 0;
                 //find a vm which can be transfered
-                //note that this is a greedy algorithm, the optimal can be different
+                //note that this is a greedy algorithm, 
+                //the optimal can be different
+                //this is not needed when all vms have the
+                //same power consumption
                 while (found == false
                         && i < from.getWorkload().size()) {
-
                     VirtualMachineInstance vm = from.getWorkload().getAt(i++);
                     if ((vm.getPowerConsumption()
                             + to.getCurrentPowerConsumption())
                             <= to.getMaxPowerConsumptionThreshold()) {
-
-                        lbResult.incrementVmMigrations();
+//                        lbResult.incrementVmMigrations();
                         to.add(vm);
                         from.remove(vm);
                         break;
@@ -658,14 +694,9 @@ public class Datacenter {
                 if (found == false) {
                     break;
                 }
-            }
-        }
+            } //end of loop for a specific peer
+        }//end of Vman main loop
         return lbResult;
-        //should be switched off?
-//        assert (a1 >= 0 && a1 <= max);
-//        assert (a2 >= 0 && a1 <= max);
-//        this.value = (float) a1;
-//        neighbor.value = (float) a2;
     }
 
     /**
@@ -871,4 +902,10 @@ public class Datacenter {
     public final int getCurrentSize() {
         return getActiveComputeNodes(true).size();
     }
+
+    LBResult doOkPackingMigrations(String nodeId) {
+        return null;
+    }
+
+  
 }

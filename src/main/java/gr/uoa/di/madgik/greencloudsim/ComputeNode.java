@@ -81,7 +81,7 @@ public class ComputeNode extends Node {
     public final Workload getWorkload() {
         return workload;
     }
-
+ 
     /**
      * Adds a VM to this node.
      *
@@ -231,7 +231,8 @@ public class ComputeNode extends Node {
 
             if (currentPowerConsumption <= powerProfile.getMinThreshold()) {
                 state = State.Underutilized;
-            } else if (currentPowerConsumption >= powerProfile.getMaxThreshold()) {
+            } else if (currentPowerConsumption
+                    >= powerProfile.getMaxThreshold()) {
                 state = State.Overutilized;
             } else {
                 state = State.Ok;

@@ -23,6 +23,15 @@ public class LBResult {
         return vmMigrations;
     }
 
+    public void merge(LBResult other) {
+        if (other == null) {
+            return;
+        }
+        vmMigrations += other.getVmMigrations();
+        switchOffs += other.getSwitchOffs();
+        switchOns += other.getSwitchOns();
+    }
+
     public void setVmMigrations(int vmMigrations) {
         this.vmMigrations = vmMigrations;
     }

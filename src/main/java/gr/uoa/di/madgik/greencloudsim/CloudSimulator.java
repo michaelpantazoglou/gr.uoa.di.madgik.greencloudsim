@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Implements the basis of the cloud simulator. All experiments are expected to
- * override this class and implement its abstract methods.
+ * Implements the basis of the cloud simulator. It can execute an experiment per
+ * simulator.
  *
  * Created by michael on 21/11/14.
  */
@@ -22,11 +22,14 @@ public abstract class CloudSimulator {
      * Constructor.
      *
      * @param compute_nodes
+     * @param exp
      */
-    protected CloudSimulator(List<ComputeNode> compute_nodes, CloudExperiment exp) {
+    protected CloudSimulator(List<ComputeNode> compute_nodes,
+            CloudExperiment exp) {
         experiment = exp;
         Datacenter.$().init(compute_nodes);
-        energyConsumption = new double[Environment.$().getNumberOfSimulationRounds() / 3600];
+        int temp = Environment.$().getNumberOfSimulationRounds() / 3600;
+        energyConsumption = new double[temp];
         Arrays.fill(energyConsumption, 0d);
     }
 
@@ -59,17 +62,25 @@ public abstract class CloudSimulator {
      * @return
      * @throws Exception
      */
-    protected final Measurements takeMeasurements(int round, int vmMigrations) throws Exception {
+    protected final Measurements takeMeasurements(int round,
+            int vmMigrations) throws Exception {
         Measurements measurements = new Measurements();
         measurements.round = round;
-        measurements.switchedOffComputeNodes = Datacenter.$().getSwitchedOffComputeNodes().size();
-        measurements.idleComputeNodes = Datacenter.$().getIdleComputeNodes().size();
-        measurements.underutilizedComputeNodes = Datacenter.$().getUnderUtilizedComputeNodes().size();
-        measurements.okComputeNodes = Datacenter.$().getOkComputeNodes().size();
-        measurements.overutilizedComputeNodes = Datacenter.$().getOverUtilizedComputeNodes().size();
-        measurements.vmInstances = Datacenter.$().getNumberOfVmInstances();
+        measurements.switchedOffComputeNodes
+                = Datacenter.$().getSwitchedOffComputeNodes().size();
+        measurements.idleComputeNodes
+                = Datacenter.$().getIdleComputeNodes().size();
+        measurements.underutilizedComputeNodes
+                = Datacenter.$().getUnderUtilizedComputeNodes().size();
+        measurements.okComputeNodes
+                = Datacenter.$().getOkComputeNodes().size();
+        measurements.overutilizedComputeNodes
+                = Datacenter.$().getOverUtilizedComputeNodes().size();
+        measurements.vmInstances
+                = Datacenter.$().getNumberOfVmInstances();
         measurements.vmMigrations = vmMigrations;
-        measurements.powerConsumption = Datacenter.$().getCurrentPowerConsumption();
+        measurements.powerConsumption
+                = Datacenter.$().getCurrentPowerConsumption();
 
         return measurements;
     }
@@ -121,14 +132,26 @@ public abstract class CloudSimulator {
                 vmMigrations += lbResult.getVmMigrations();
                 switchOffs += lbResult.getSwitchOffs();
                 switchOns += lbResult.getSwitchOns();
-//				System.out.format("round %d, vmMigrations = %d\r\n", round, vmMigrations);
-                powerAccumulator += lbResult.getVmMigrations() * Environment.$().getVmMigrationPowerOverhead() * Environment.$().getVmMigrationDuration();
-                powerAccumulator += lbResult.getSwitchOffs() * Environment.$().getSwitchOffPowerConsumption() * Environment.$().getSwitchOffDuration();
-                powerAccumulator += lbResult.getSwitchOns() * Environment.$().getSwitchOnPowerConsumption() * Environment.$().getSwitchOnDuration();
+//System.out.format("round %d, vmMigrations = %d\r\n", round, vmMigrations);
+                powerAccumulator += lbResult.getVmMigrations()
+                        * Environment.$().getVmMigrationPowerOverhead()
+                        * Environment.$().getVmMigrationDuration();
+                powerAccumulator += lbResult.getSwitchOffs()
+                        * Environment.$().getSwitchOffPowerConsumption()
+                        * Environment.$().getSwitchOffDuration();
+                powerAccumulator += lbResult.getSwitchOns()
+                        * Environment.$().getSwitchOnPowerConsumption()
+                        * Environment.$().getSwitchOnDuration();
 
-                vmMigrationPowerOverhead += lbResult.getVmMigrations() * Environment.$().getVmMigrationPowerOverhead() * Environment.$().getVmMigrationDuration();
-                switchOffsPowerOverhead += lbResult.getSwitchOffs() * Environment.$().getSwitchOffPowerConsumption() * Environment.$().getSwitchOffDuration();
-                switchOnsPowerOverhead += lbResult.getSwitchOns() * Environment.$().getSwitchOnPowerConsumption() * Environment.$().getSwitchOnDuration();
+                vmMigrationPowerOverhead += lbResult.getVmMigrations()
+                        * Environment.$().getVmMigrationPowerOverhead()
+                        * Environment.$().getVmMigrationDuration();
+                switchOffsPowerOverhead += lbResult.getSwitchOffs()
+                        * Environment.$().getSwitchOffPowerConsumption()
+                        * Environment.$().getSwitchOffDuration();
+                switchOnsPowerOverhead += lbResult.getSwitchOns()
+                        * Environment.$().getSwitchOnPowerConsumption()
+                        * Environment.$().getSwitchOnDuration();
             }
 
             // take hourly measurements and reset
@@ -136,12 +159,16 @@ public abstract class CloudSimulator {
                 // print out measurements of this hour
                 Measurements measurements = takeMeasurements(hours, vmMigrations);
                 measurements.round = hours + 1;
-                measurements.powerConsumption = powerAccumulator / 3600; // avg power consumption
+                measurements.powerConsumption
+                        = powerAccumulator / 3600; // avg power consumption
                 measurements.switchOffs = switchOffs;
                 measurements.switchOns = switchOns;
-                measurements.vmMigrationPowerOverhead = vmMigrationPowerOverhead / 3600;
-                measurements.switchOffsPowerOverhead = switchOffsPowerOverhead / 3600;
-                measurements.switchOnsPowerOverhead = switchOnsPowerOverhead / 3600;
+                measurements.vmMigrationPowerOverhead
+                        = vmMigrationPowerOverhead / 3600;
+                measurements.switchOffsPowerOverhead
+                        = switchOffsPowerOverhead / 3600;
+                measurements.switchOnsPowerOverhead
+                        = switchOnsPowerOverhead / 3600;
                 System.out.println(measurements);
 
                 // calculate hourly energy consumption
@@ -154,7 +181,8 @@ public abstract class CloudSimulator {
                 switchOffsPowerOverhead = 0d;
                 switchOnsPowerOverhead = 0d;
 
-                // reset vm migrations, switch on/off accumulators for the next hour
+                // reset vm migrations, 
+                //switch on/off accumulators for the next hour
                 vmMigrations = 0;
                 switchOffs = 0;
                 switchOns = 0;
@@ -179,7 +207,7 @@ public abstract class CloudSimulator {
     public void printOutEnergyConsumption() {
         System.out.println("Hour\tEnergyConsumption");
         for (int i = 0; i < energyConsumption.length; i++) {
-            System.out.format("%4d\t%15.2f\r\n", i, Double.valueOf(energyConsumption[i]));
+            System.out.format("%4d\t%15.2f\r\n", i, energyConsumption[i]);
         }
     }
 }

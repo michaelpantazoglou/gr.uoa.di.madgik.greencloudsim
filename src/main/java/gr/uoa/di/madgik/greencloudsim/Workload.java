@@ -1,6 +1,7 @@
 package gr.uoa.di.madgik.greencloudsim;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -113,7 +114,9 @@ public class Workload {
 
         return powerConsumption;
     }
-
+    public Object[] getVMS(){
+        return content.values().toArray();
+    }
     /**
      * Clears this workload.
      */

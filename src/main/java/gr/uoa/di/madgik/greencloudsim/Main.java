@@ -12,7 +12,7 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        CloudExperiment exps[] = new CloudExperiment[]{new ConvergenceExperiment()};//,
+        CloudExperiment exps[] = new CloudExperiment[]{ new ConvergenceExperiment()};//,
 //            new GCLoadBalancingExperiment(), new RRLoadBalancingExperiment(), new ElasticityExperiment()};
         for (CloudExperiment exp : exps) {
             CloudSimulator simulator = new GreenCloudSimulator(exp);
