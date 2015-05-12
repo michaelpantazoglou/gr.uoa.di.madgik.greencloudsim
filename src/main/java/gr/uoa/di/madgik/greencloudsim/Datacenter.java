@@ -31,13 +31,29 @@ public class Datacenter {
     private List<String> underutilizedNodes;
     private List<String> okNodes;
     private List<String> overutilizedNodes;
+    private int switchONs;
+    private int switchOffs;
+
+    public void resetSwitchCounts() {
+        switchOffs = 0;
+        switchONs = 0;
+    }
+
+    public int getSwitchONs() {
+        return switchONs;
+    }
+
+    public int getSwitchOffs() {
+        return switchOffs;
+    }
 
     /**
      * Private constructor.
      */
     private Datacenter() {
+        switchOffs = 0;
+        switchONs = 0;
         computeNodes = new HashMap<>();
-
         switchedOffNodes = new ArrayList<>();
         idleNodes = new ArrayList<>();
         underutilizedNodes = new ArrayList<>();
@@ -64,7 +80,7 @@ public class Datacenter {
 
         ArrayList<ArrayList<String>> workloads = new ArrayList<>();
         for (int i = 0; i < computeNodes.size(); ++i) {
-            workloads.add(new ArrayList<>());
+            workloads.add(new ArrayList<String>());
         }
         int i = 0;
         for (ComputeNode node : computeNodes.values()) {
@@ -168,6 +184,7 @@ public class Datacenter {
 
         if (active.size() == 0) {
             // no active nodes, so switch one one random compute node
+            switchONs++;
             if (switchedOffNodes.size() == 0) {
                 // no switched off nodes either. Seems all nodes are overutilized...
                 System.err.println("Cloud resources exhausted! Consider increasing the Hypercube dimension.");
@@ -217,6 +234,10 @@ public class Datacenter {
 //        System.out.println(active.size());
         ComputeNode computeNode = active.get(random);
         computeNode.removeRandomVm();
+        if (computeNode.isSwitchedOff()) {
+            switchOffs++;
+            System.out.println("not useless!");
+        }
     }
 
     @Override
@@ -399,13 +420,13 @@ public class Datacenter {
      * Attempts to perform partial migration of the VM instances hosted by the
      * specified compute node.
      *
-     * @param nodeId
+     * @param thisNodeID
      * @return
      */
-    public final LBResult doPartialVmMigration(String nodeId) {
+    public final LBResult doPartialVmMigration(String thisNodeID) {
         LBResult lbResult = new LBResult();
 
-        ComputeNode computeNode = computeNodes.get(nodeId);
+        ComputeNode computeNode = computeNodes.get(thisNodeID);
         if (!computeNode.isOverUtilized()) {
             return lbResult;
         }
@@ -426,14 +447,11 @@ public class Datacenter {
         for (String s : switchedOff) {
             targetNeighbors.add(s);
         }
-
+        targetNeighbors.remove(thisNodeID);
         /**
          * loop for each neighbor
          */
         for (String id : targetNeighbors) {
-            if (id.equals(nodeId)) {
-                continue;
-            }
             ComputeNode neighbor = computeNodes.get(id);
 
             /**
@@ -514,13 +532,13 @@ public class Datacenter {
      * Attempts a full migration of the current workload of the specified
      * compute node.
      *
-     * @param nodeId
+     * @param thisNodeID
      * @return
      */
-    public final LBResult doFullVmMigration(String nodeId) {
+    public final LBResult doFullVmMigration(String thisNodeID) {
         LBResult lbResult = new LBResult();
 
-        ComputeNode computeNode = computeNodes.get(nodeId);
+        ComputeNode computeNode = computeNodes.get(thisNodeID);
 
         if (!computeNode.isUnderUtilized()) {
             return lbResult;
@@ -535,10 +553,9 @@ public class Datacenter {
          */
         ArrayList<String> peers = new ArrayList<>();
         peers.addAll(Datacenter.$().getActiveComputeNodes(false));
+        peers.remove(thisNodeID);
         for (String id : peers) {
-            if (id.equals(nodeId)) {
-                continue;
-            }
+
             ComputeNode neighbor = computeNodes.get(id);
 
             /**
@@ -590,7 +607,8 @@ public class Datacenter {
                     lbResult.incrementSwitchOns();
                 }
                 computeNode.remove(vm);
-                if (computeNode.isSwitchedOff()) {
+                if (computeNode.isSwitchedOff()) {// is redundant
+
                     lbResult.incrementSwitchOffs();
                 }
                 neighbor.add(vm);
@@ -642,6 +660,7 @@ public class Datacenter {
             if (peer.isIdle()) {
                 continue;
             }
+
             double max = thisNode.getMaxPowerConsumptionThreshold();
             double max2 = peer.getMaxPowerConsumptionThreshold();
             double a1_avail = max - a1;
@@ -684,10 +703,14 @@ public class Datacenter {
                     VirtualMachineInstance vm = from.getWorkload().getAt(i++);
                     if ((vm.getPowerConsumption()
                             + to.getCurrentPowerConsumption())
-                            <= to.getMaxPowerConsumptionThreshold()) {
-//                        lbResult.incrementVmMigrations();
+                            < to.getMaxPowerConsumptionThreshold()) {
+                        lbResult.incrementVmMigrations();
                         to.add(vm);
                         from.remove(vm);
+                        if (from.isSwitchedOff()) {
+                            System.out.println("is useless?");
+                            lbResult.incrementSwitchOffs();
+                        }
                         break;
                     }
                 }
@@ -904,8 +927,68 @@ public class Datacenter {
     }
 
     LBResult doOkPackingMigrations(String nodeId) {
-        return null;
+        LBResult results = new LBResult();
+        List<String> ok = new ArrayList<>();
+        ComputeNode thisNode = computeNodes.get(nodeId);
+        if (thisNode == null || !thisNode.isOk()) {
+            return results;
+        }
+//        ok.addAll(Datacenter.$().okNodes);
+        ok.addAll(Datacenter.$().okNodes);
+        ok.remove(nodeId);
+
+        int i = 0;
+        int numberOfVms = thisNode.getWorkload().size();
+        VirtualMachineInstance vm = thisNode.getWorkload().getAt(i++);
+        ArrayList<ComputeNode> log = new ArrayList<>();
+        double sumk;
+
+        bigloop:
+        for (String peerID : ok) {
+            ComputeNode peer = computeNodes.get(peerID);
+            if (peer.isOk()) {
+                //if the migration of the current vm is possible log it
+                sumk = vm.getPowerConsumption();
+                while ((peer.getCurrentPowerConsumption() + sumk)
+                        < peer.getMaxPowerConsumptionThreshold()) {
+
+                    log.add(peer);
+                    if (i == numberOfVms) {
+                        break bigloop;
+                    }
+
+                    vm = thisNode.getWorkload().getAt(i++);
+                    sumk += vm.getPowerConsumption();
+                }
+            }
+
+        }
+
+        if (log.size() == numberOfVms) {
+            results.setVmMigrations(numberOfVms);
+            for (int j = 0; j < numberOfVms; ++j) {
+                ComputeNode peer = log.get(j);
+                vm = thisNode.getWorkload().getAt(0);
+                thisNode.remove(vm);
+                peer.add(vm);
+            }
+        }
+
+        return results;
+
     }
 
-  
+    public void newsCastDebug() {
+//        for (ComputeNode node : computeNodes.values()) {
+//            if (node.isUnderUtilized()) {
+//                System.out.print(" {" + node.getId()+"}");
+//                for (String id : node.getAllNeighbors()) {
+//                    System.out.print(" " + id);
+//                }
+//                System.out.println("\n-----------------------------------------");
+//            }
+//
+//        }
+    }
+
 }

@@ -1,6 +1,7 @@
 package gr.uoa.di.madgik.greencloudsim;
 
 import gr.uoa.di.madgik.greencloudsim.experiments.CloudExperiment;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -130,8 +131,9 @@ public abstract class CloudSimulator {
                 LBResult lbResult = (experiment.isPerformLoadBalancing())
                         ? performLoadBalancing() : new LBResult();
                 vmMigrations += lbResult.getVmMigrations();
-                switchOffs += lbResult.getSwitchOffs();
-                switchOns += lbResult.getSwitchOns();
+                switchOffs += lbResult.getSwitchOffs() + Datacenter.$().getSwitchOffs();
+                switchOns += lbResult.getSwitchOns() + Datacenter.$().getSwitchONs();
+                Datacenter.$().resetSwitchCounts();
 //System.out.format("round %d, vmMigrations = %d\r\n", round, vmMigrations);
                 powerAccumulator += lbResult.getVmMigrations()
                         * Environment.$().getVmMigrationPowerOverhead()
@@ -193,6 +195,11 @@ public abstract class CloudSimulator {
             Datacenter.$().topologyUpdates();
             SimulationTime.timePlus();
         } // end loop for each simulation round (second)
+//        ArrayList<ArrayList<String>> test = Datacenter.$().getWorkloads();
+//        for (ArrayList<String> temp : test) {
+//            System.out.println(temp.size());
+//        }
+
     }
 
     /**

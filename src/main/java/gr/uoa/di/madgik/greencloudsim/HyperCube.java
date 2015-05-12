@@ -50,7 +50,6 @@ public class HyperCube extends NetworkInterface {
         for (ComputeNode node : compute_node) {
             ((HyperCube) node.getInterface()).setup();
         }
-
         return compute_node;
     }
 

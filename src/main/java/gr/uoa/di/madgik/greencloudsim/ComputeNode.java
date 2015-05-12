@@ -81,7 +81,7 @@ public class ComputeNode extends Node {
     public final Workload getWorkload() {
         return workload;
     }
- 
+
     /**
      * Adds a VM to this node.
      *

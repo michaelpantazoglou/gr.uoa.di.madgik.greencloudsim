@@ -1,8 +1,6 @@
 package gr.uoa.di.madgik.greencloudsim;
 
-import static gr.uoa.di.madgik.greencloudsim.HyperCube.constructHypercubeTopology;
 import gr.uoa.di.madgik.greencloudsim.experiments.*;
-import java.util.List;
 
 /**
  * Implements the execution entry point of the simulator.
@@ -12,15 +10,15 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        CloudExperiment exps[] = new CloudExperiment[]{ new ConvergenceExperiment()};//,
+        CloudExperiment exps[] = new CloudExperiment[]{new ElasticityExperiment()};
 //            new GCLoadBalancingExperiment(), new RRLoadBalancingExperiment(), new ElasticityExperiment()};
-        for (CloudExperiment exp : exps) {
-            CloudSimulator simulator = new GreenCloudSimulator(exp);
-            simulator.run();
 
-            System.out.println();
+        for (CloudExperiment exp : exps) {
+            CloudSimulator simulator = new VManCloudSimulator(exp);
+            simulator.run();
 
             simulator.printOutEnergyConsumption();
         }
+
     }
 }

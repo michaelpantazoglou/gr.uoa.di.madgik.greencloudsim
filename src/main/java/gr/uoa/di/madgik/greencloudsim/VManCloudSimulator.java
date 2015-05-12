@@ -19,20 +19,14 @@ public class VManCloudSimulator extends CloudSimulator {
     @Override
     protected LBResult performLoadBalancing() {
         LBResult result = new LBResult();
-        ArrayList<ArrayList<String>> oldWorkload = Datacenter.$()
-                .getWorkloads();
         for (String nodeId : Datacenter.$().getActiveComputeNodes(true)) {
             LBResult temp = Datacenter.$().balanceVMAN(nodeId);
             result.merge(temp);
 
         }
-        ArrayList<ArrayList<String>> newWorkload = Datacenter.$()
-                .getWorkloads();
-        int migrations = Util.diff(oldWorkload, newWorkload);
         int switchoffs = Datacenter.$().switchOffIdleNodes();
-        result.setVmMigrations(migrations);
-
         result.setSwitchOffs(result.getSwitchOffs() + switchoffs);
+
         return result;
     }
 

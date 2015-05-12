@@ -19,7 +19,7 @@ public class Newscast extends NetworkInterface {
     /**
      * Random values generator
      */
-    private static final ExtendedRandom randomGenerator = new ExtendedRandom(0);
+    private static final ExtendedRandom randomGenerator = new ExtendedRandom(System.currentTimeMillis());
     /**
      * Temp array for merging. Its size is the same as the cache size.
      */
@@ -201,16 +201,16 @@ public class Newscast extends NetworkInterface {
      * @return
      */
     public static List<ComputeNode> constructNewsCastTopology(Integer dimension, boolean useRandomIds) {
-
+        int neighbors = dimension;
         ArrayList<ComputeNode> nodes = new ArrayList<>();
-        Newscast network = new Newscast(dimension * 2);
+        Newscast network = new Newscast(neighbors);
         ComputeNode previous = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID()
                 : IdentityGenerator.newComputeNodeId(), network);
         network.init(previous);
         nodes.add(previous);
         network.refreshNeighborsNames();
         for (int i = 1; i < Math.pow(2, dimension); ++i) {
-            Newscast tempNetwork = new Newscast(dimension * 2);
+            Newscast tempNetwork = new Newscast(neighbors);
             ComputeNode temp = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID()
                     : IdentityGenerator.newComputeNodeId(), tempNetwork);
             tempNetwork.init(temp);
@@ -222,8 +222,8 @@ public class Newscast extends NetworkInterface {
         for (ComputeNode node : nodes) {
             node.switchOn();
         }
-
-        for (int i = 0; i < 3; ++i) {
+        System.out.println("initiating newscast topology!");
+        for (int i = 0; i < 150; ++i) {
 
             SimulationTime.timePlus();
 
@@ -319,7 +319,6 @@ public class Newscast extends NetworkInterface {
     public void nextCycle(ComputeNode node) {
         ComputeNode peerComputeNode = getPeer();
         if (peerComputeNode == null) {
-//            System.err.println("Newscast: no accessible peer");
             return;
         }
 
