@@ -26,6 +26,11 @@ public class HyperCube extends NetworkInterface {
         neighbors = new HashMap<>();
     }
 
+    @Override
+    public int getNeighborsMaxSize() {
+        return Environment.$().getHypercubeDimension();
+    }
+
     /**
      * Sets the neighbor at the specified dimension.
      *

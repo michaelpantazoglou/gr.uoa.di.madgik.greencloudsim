@@ -25,10 +25,22 @@ public abstract class NetworkInterface {
     public List<String> getListOfNeighbors() {
         return listNeighbors;
     }
+    public abstract int getNeighborsMaxSize();
+    public boolean addNeighbor(ComputeNode node) {
+        return false;
+    }
+
+    public boolean needReinitiation() {
+        return false;
+    }
 
     /**
      * update the topology neighbors if needed
      */
     public abstract void update();
+
+    public void reinitiate(List<String> activeComputeNodes) {
+
+    }
 
 }

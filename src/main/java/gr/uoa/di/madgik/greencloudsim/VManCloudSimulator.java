@@ -6,7 +6,6 @@
 package gr.uoa.di.madgik.greencloudsim;
 
 import gr.uoa.di.madgik.greencloudsim.experiments.CloudExperiment;
-import java.util.ArrayList;
 
 public class VManCloudSimulator extends CloudSimulator {
 
@@ -14,11 +13,13 @@ public class VManCloudSimulator extends CloudSimulator {
         super(Newscast.constructNewsCastTopology(
                 Environment.$().getNewsCastDimension(),
                 Environment.$().getUseRandomIds()), exp);
+        System.out.println("Vmansimulator! ");
     }
 
     @Override
     protected LBResult performLoadBalancing() {
         LBResult result = new LBResult();
+//        Datacenter.$().debugNewsCast();
         for (String nodeId : Datacenter.$().getActiveComputeNodes(true)) {
             LBResult temp = Datacenter.$().balanceVMAN(nodeId);
             result.merge(temp);

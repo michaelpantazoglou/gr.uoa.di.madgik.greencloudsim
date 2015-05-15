@@ -130,10 +130,14 @@ public abstract class CloudSimulator {
             if (round % period == 0) {
                 LBResult lbResult = (experiment.isPerformLoadBalancing())
                         ? performLoadBalancing() : new LBResult();
-                vmMigrations += lbResult.getVmMigrations();
-                switchOffs += lbResult.getSwitchOffs() + Datacenter.$().getSwitchOffs();
-                switchOns += lbResult.getSwitchOns() + Datacenter.$().getSwitchONs();
+                lbResult.setSwitchOffs(lbResult.getSwitchOffs() + Datacenter.$().getSwitchOffs());
+                lbResult.setSwitchOns(lbResult.getSwitchOns() + Datacenter.$().getSwitchONs());
                 Datacenter.$().resetSwitchCounts();
+
+                vmMigrations += lbResult.getVmMigrations();
+                switchOffs += lbResult.getSwitchOffs();
+                switchOns += lbResult.getSwitchOns();
+
 //System.out.format("round %d, vmMigrations = %d\r\n", round, vmMigrations);
                 powerAccumulator += lbResult.getVmMigrations()
                         * Environment.$().getVmMigrationPowerOverhead()

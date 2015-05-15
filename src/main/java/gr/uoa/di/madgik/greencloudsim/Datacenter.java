@@ -127,12 +127,19 @@ public class Datacenter {
         System.out.println("Setting up compute nodes...");
         int numberOfSwitchedOnComputeNodes = 0;
         for (ComputeNode computeNode : compute_nodes) {
+            computeNodes.put(computeNode.getId(), computeNode);
             if (numberOfSwitchedOnComputeNodes < Environment.$().getInitialClusterSize()) {
+
                 computeNode.switchOn();
                 numberOfSwitchedOnComputeNodes++;
+
             }
-            computeNodes.put(computeNode.getId(), computeNode);
+
 //            System.out.println(computeNode);
+        }
+        for (String id : Datacenter.$().getActiveComputeNodes(true)) {
+            ComputeNode computeNode = computeNodes.get(id);
+            reinit(computeNode);
         }
 
         System.out.format("Cloud initialized with %d/%d switched on node(s)\r\n",
@@ -198,6 +205,8 @@ public class Datacenter {
             }
             random = Double.valueOf(Math.random() * switchedOffNodes.size()).intValue();
             computeNode = computeNodes.get(getSwitchedOffComputeNodes().get(random));
+            reinit(computeNode);
+
         } else {
             random = Double.valueOf(Math.random() * active.size()).intValue();
             computeNode = active.get(random);
@@ -205,6 +214,37 @@ public class Datacenter {
 
         String vmId = Environment.$().getUseRandomIds() ? IdentityGenerator.newRandomUUID() : IdentityGenerator.newVmInstanceId();
         addVirtualMachineInstance(new VirtualMachineInstance(vmId), computeNode.getId());
+    }
+
+    private void reinit(ComputeNode computeNode) {
+        //this is a dirty fast approach ,the proper one should be object
+        //oriented
+        if (computeNode.getInterface().needReinitiation()) {
+            ((Newscast) computeNode.getInterface()).clearCache();
+            int size = Datacenter.$().getActiveComputeNodes(true).size();
+            if (size < computeNode.getInterface().getNeighborsMaxSize()) {
+                for (String tempid : Datacenter.$().getActiveComputeNodes(true)) {
+                    ComputeNode temp = computeNodes.get(tempid);
+                    computeNode.getInterface().addNeighbor(temp);
+                    ((Newscast) computeNode.getInterface()).refreshNeighborsNames();
+                }
+            } else {
+                int i = 0;
+                while (i < computeNode.getInterface().getNeighborsMaxSize()) {
+                    String possiblePeer = Newscast.randomGenerator.nextInt(size) + "";
+                    boolean flag = computeNode.getInterface().addNeighbor(computeNodes.get(possiblePeer));
+                    if (flag) {
+                        i++;
+                        ((Newscast) computeNode.getInterface()).refreshNeighborsNames();
+                    }
+
+                }
+            }
+//            for (String temp : computeNode.getAllNeighbors()){
+//                System.out.print("  "+temp);
+//            }
+//            System.out.println("");
+        }
     }
 
     public final void removeOneVm() {
@@ -236,7 +276,6 @@ public class Datacenter {
         computeNode.removeRandomVm();
         if (computeNode.isSwitchedOff()) {
             switchOffs++;
-            System.out.println("not useless!");
         }
     }
 
@@ -645,7 +684,6 @@ public class Datacenter {
         //VMan loop for each peer
         for (String peerId : thisNode.getAllNeighbors()) {
             ComputeNode peer = computeNodes.get(peerId);
-
             //find a suitable peer
             if (peer == null || peer.isSwitchedOff()) {
                 continue;
@@ -674,7 +712,6 @@ public class Datacenter {
             if (a1 <= a2) {
                 // PUSH      
                 from = thisNode;
-
                 to = peer;
                 a1 -= trans;
                 a2 += trans;
@@ -708,7 +745,6 @@ public class Datacenter {
                         to.add(vm);
                         from.remove(vm);
                         if (from.isSwitchedOff()) {
-                            System.out.println("is useless?");
                             lbResult.incrementSwitchOffs();
                         }
                         break;
@@ -933,32 +969,32 @@ public class Datacenter {
         if (thisNode == null || !thisNode.isOk()) {
             return results;
         }
-//        ok.addAll(Datacenter.$().okNodes);
         ok.addAll(Datacenter.$().okNodes);
-        ok.remove(nodeId);
+//        ok.addAll(thisNode.getOkNeighbors());
+
+        ok.remove(nodeId); //remove the node itself from the neighbors
 
         int i = 0;
         int numberOfVms = thisNode.getWorkload().size();
         VirtualMachineInstance vm = thisNode.getWorkload().getAt(i++);
         ArrayList<ComputeNode> log = new ArrayList<>();
-        double sumk;
+        double addedConsumption;
 
         bigloop:
         for (String peerID : ok) {
             ComputeNode peer = computeNodes.get(peerID);
             if (peer.isOk()) {
                 //if the migration of the current vm is possible log it
-                sumk = vm.getPowerConsumption();
-                while ((peer.getCurrentPowerConsumption() + sumk)
+                //sumk is the logged added consumption of peer
+                addedConsumption = vm.getPowerConsumption();
+                while ((peer.getCurrentPowerConsumption() + addedConsumption)
                         < peer.getMaxPowerConsumptionThreshold()) {
-
                     log.add(peer);
                     if (i == numberOfVms) {
                         break bigloop;
                     }
-
                     vm = thisNode.getWorkload().getAt(i++);
-                    sumk += vm.getPowerConsumption();
+                    addedConsumption += vm.getPowerConsumption();
                 }
             }
 
@@ -989,6 +1025,48 @@ public class Datacenter {
 //            }
 //
 //        }
+    }
+
+    public void debugNewsCast() {
+        int ok = 0;
+        System.out.println("\n-----------------------");
+        for (String id : getOkComputeNodes()) {
+            ComputeNode temp = computeNodes.get(id);
+            int wsize = temp.getWorkload().size();
+            if (wsize < 8) {
+                System.out.println(id + ":" + wsize + " ");
+                ok++;
+            }
+
+        }
+        System.out.println("\n-------\nok are " + ok + "\n-----------------------");
+        int idle = 0;
+        for (String id : getUnderUtilizedComputeNodes()) {
+            ComputeNode temp = computeNodes.get(id);
+            int wsize = temp.getWorkload().size();
+            if (wsize < 3 && wsize > 0) {
+                System.out.println(id + ":" + wsize + " ");
+                idle++;
+                System.out.print("ok :");
+                for (String neigh : temp.getOkNeighbors()) {
+                    System.out.print(" " + neigh);
+                }
+                System.out.print("under :");
+                for (String neigh : temp.getUnderutilizedNeighbors()) {
+                    System.out.print(" " + neigh);
+                }
+                System.out.print("over :");
+                for (String neigh : temp.getAllNeighbors()) {
+                    if (Datacenter.$().overutilizedNodes.contains(neigh)) {
+                        System.out.print(" " + neigh);
+                    }
+                }
+                System.out.println("");
+            }
+
+        }
+        System.out.println("\n-------\nidle are " + idle + "\n-----------------------");
+
     }
 
 }

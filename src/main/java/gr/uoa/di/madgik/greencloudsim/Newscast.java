@@ -19,7 +19,7 @@ public class Newscast extends NetworkInterface {
     /**
      * Random values generator
      */
-    private static final ExtendedRandom randomGenerator = new ExtendedRandom(System.currentTimeMillis());
+    public static final ExtendedRandom randomGenerator = new ExtendedRandom(System.currentTimeMillis());
     /**
      * Temp array for merging. Its size is the same as the cache size.
      */
@@ -203,35 +203,20 @@ public class Newscast extends NetworkInterface {
     public static List<ComputeNode> constructNewsCastTopology(Integer dimension, boolean useRandomIds) {
         int neighbors = dimension;
         ArrayList<ComputeNode> nodes = new ArrayList<>();
-        Newscast network = new Newscast(neighbors);
-        ComputeNode previous = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID()
-                : IdentityGenerator.newComputeNodeId(), network);
-        network.init(previous);
-        nodes.add(previous);
-        network.refreshNeighborsNames();
-        for (int i = 1; i < Math.pow(2, dimension); ++i) {
+
+        for (int i = 0; i < Math.pow(2, dimension); ++i) {
             Newscast tempNetwork = new Newscast(neighbors);
             ComputeNode temp = new ComputeNode(useRandomIds ? IdentityGenerator.newRandomUUID()
                     : IdentityGenerator.newComputeNodeId(), tempNetwork);
             tempNetwork.init(temp);
-            tempNetwork.addNeighbor(previous);
-            tempNetwork.refreshNeighborsNames();
             nodes.add(temp);
-            previous = temp;
+
         }
         for (ComputeNode node : nodes) {
             node.switchOn();
         }
-        System.out.println("initiating newscast topology!");
-        for (int i = 0; i < 150; ++i) {
+        System.out.println("initiating newscast !");
 
-            SimulationTime.timePlus();
-
-            for (ComputeNode node : nodes) {
-                node.topologyUpdate();
-            }
-
-        }
         for (ComputeNode node : nodes) {
             node.switchOff();
         }
@@ -264,7 +249,17 @@ public class Newscast extends NetworkInterface {
         return len + 1;
     }
 
+    @Override
+    public boolean needReinitiation() {
+        return true;
+    }
 // --------------------------------------------------------------------
+
+    @Override
+    public int getNeighborsMaxSize() {
+        return Environment.$().getNewsCastDimension();
+    }
+
     /**
      * Adds a new neighbor if its not already in the current cache. If cache is
      * full it throws IndexOutOfBoundException!
@@ -273,6 +268,7 @@ public class Newscast extends NetworkInterface {
      * @return
      * @exception IndexOutOfBoundsException
      */
+    @Override
     public boolean addNeighbor(ComputeNode node) {
 
         int i;
@@ -299,6 +295,11 @@ public class Newscast extends NetworkInterface {
         }
     }
 
+    public void clearCache() {
+
+        cache = new ComputeNode[cache.length];;
+
+    }
 // --------------------------------------------------------------------
 //    private boolean contains(ComputeNode n) {
 //        for (int i = 0; i < cache.length; i++) {
@@ -309,6 +310,7 @@ public class Newscast extends NetworkInterface {
 //        return false;
 //    }
 // --------------------------------------------------------------------
+
     /**
      * Simulates the run of newscast protocol of node. A random peer will be
      * selected and node and peer will merge their neighbors' lists. Both node's
